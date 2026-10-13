@@ -1,0 +1,110 @@
+{
+  "tool": "build-phase",
+  "version": 2,
+  "startedAt": "2026-10-13T01:28:15.897Z",
+  "comp": ".impeccable/mocks/approved.png",
+  "direction": null,
+  "breakpoint": "1487x1058",
+  "artifact": null,
+  "phase": "plates",
+  "phases": {
+    "comps": {
+      "status": "skipped",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [
+        {
+          "at": "2026-10-13T01:28:15.897Z",
+          "text": "started with an approved comp; the comp round happened before this state (surface round or manual)"
+        }
+      ],
+      "gate": null,
+      "forced": null
+    },
+    "spec": {
+      "status": "closed",
+      "openedAt": "2026-10-13T01:28:15.896Z",
+      "closedAt": "2026-10-13T01:31:51.773Z",
+      "attempts": 2,
+      "notes": [],
+      "gate": {
+        "ok": true,
+        "reasons": [],
+        "summary": "11 regions, 1 plates, 5 text regions measured",
+        "at": "2026-10-13T01:31:51.773Z"
+      },
+      "forced": null
+    },
+    "plates": {
+      "status": "open",
+      "openedAt": "2026-10-13T01:31:51.773Z",
+      "closedAt": null,
+      "attempts": 2,
+      "notes": [],
+      "gate": {
+        "ok": false,
+        "reasons": [
+          "plate assets/plates/floor-plan.png is 1438px wide; the comp region is 1001px and a shipping plate needs at least 1502px. Regenerate at asset size, do not crop the comp.",
+          "plate assets/plates/floor-plan.png: structure 30% against the comp region floor-plan: the composition of the plate is not the region's (different subject, orientation, or crop); regenerate with comp-spec.mjs --crop floor-plan as the reference image"
+        ],
+        "summary": "1/1 plates",
+        "at": "2026-10-13T01:36:11.687Z"
+      },
+      "forced": null
+    },
+    "hero": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    },
+    "sections": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    },
+    "motion": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    },
+    "responsive": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    },
+    "review": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    }
+  },
+  "finish": null,
+  "plates": {
+    "floor-plan": {
+      "status": "ok",
+      "score": 0.537,
+      "size": "1438x1093"
+    }
+  }
+}

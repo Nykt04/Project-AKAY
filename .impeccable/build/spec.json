@@ -1,0 +1,609 @@
+{
+  "tool": "comp-spec",
+  "version": 1,
+  "createdAt": "2026-10-13T01:36:11.406Z",
+  "comp": ".impeccable/mocks/approved.png",
+  "warnings": [
+    "region floor-plan: the artwork runs off the box on the left (its ink reaches the edge over 35% of that side). Widen the region so the box holds the whole shape with a margin; a plate placed with object-fit: cover on this box would be cut there."
+  ],
+  "uncoveredInkCells": [
+    "D1",
+    "E1",
+    "I1"
+  ],
+  "compSize": {
+    "width": 1487,
+    "height": 1058
+  },
+  "aspect": 1.4055,
+  "orientation": "landscape",
+  "palette": [
+    {
+      "hex": "#f4f1ed",
+      "coverage": 0.8824
+    },
+    {
+      "hex": "#979691",
+      "coverage": 0.0593
+    },
+    {
+      "hex": "#ccc6c2",
+      "coverage": 0.0406
+    },
+    {
+      "hex": "#244737",
+      "coverage": 0.0128
+    },
+    {
+      "hex": "#6e6b67",
+      "coverage": 0.0049
+    }
+  ],
+  "bands": [
+    {
+      "y": 0.044,
+      "strength": 0.2162
+    },
+    {
+      "y": 0.1319,
+      "strength": 0.2386
+    },
+    {
+      "y": 0.1648,
+      "strength": 0.6924
+    },
+    {
+      "y": 0.1868,
+      "strength": 0.2927
+    },
+    {
+      "y": 0.2637,
+      "strength": 0.244
+    },
+    {
+      "y": 0.4505,
+      "strength": 0.5147
+    },
+    {
+      "y": 0.5055,
+      "strength": 0.4777
+    },
+    {
+      "y": 0.5934,
+      "strength": 0.4572
+    },
+    {
+      "y": 0.8462,
+      "strength": 0.3721
+    }
+  ],
+  "regions": [
+    {
+      "id": "wordmark",
+      "kind": "text",
+      "note": "LINDEN HOTEL wordmark",
+      "grid": "A0:C0",
+      "snap": false,
+      "box": {
+        "x": 0.0235,
+        "y": 0.0189,
+        "w": 0.1984,
+        "h": 0.0331
+      },
+      "px": {
+        "x": 35,
+        "y": 20,
+        "w": 295,
+        "h": 35
+      },
+      "aspect": 8.4286,
+      "palette": [
+        {
+          "hex": "#f7f7f4",
+          "coverage": 0.8304
+        },
+        {
+          "hex": "#19352a",
+          "coverage": 0.0726
+        },
+        {
+          "hex": "#c5cbc5",
+          "coverage": 0.0354
+        },
+        {
+          "hex": "#4e605a",
+          "coverage": 0.0354
+        },
+        {
+          "hex": "#86938e",
+          "coverage": 0.0262
+        }
+      ],
+      "detail": {
+        "energy": 55.3774
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "nav",
+      "kind": "control",
+      "note": "Navigation and demo disclosure",
+      "grid": "G0:J0",
+      "snap": false,
+      "box": {
+        "x": 0.6859,
+        "y": 0.0189,
+        "w": 0.2959,
+        "h": 0.0416
+      },
+      "px": {
+        "x": 1020,
+        "y": 20,
+        "w": 440,
+        "h": 44
+      },
+      "aspect": 10,
+      "palette": [
+        {
+          "hex": "#f7f7f7",
+          "coverage": 0.9245
+        },
+        {
+          "hex": "#0c3822",
+          "coverage": 0.0264
+        },
+        {
+          "hex": "#909292",
+          "coverage": 0.0255
+        },
+        {
+          "hex": "#c3c5c1",
+          "coverage": 0.0167
+        },
+        {
+          "hex": "#5b7565",
+          "coverage": 0.0069
+        }
+      ],
+      "detail": {
+        "energy": 26.1028
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "headline",
+      "kind": "text",
+      "note": "A clear path to your destination.",
+      "grid": "A1:C1",
+      "snap": false,
+      "box": {
+        "x": 0.0235,
+        "y": 0.1002,
+        "w": 0.2482,
+        "h": 0.0879
+      },
+      "px": {
+        "x": 35,
+        "y": 106,
+        "w": 369,
+        "h": 93
+      },
+      "aspect": 3.9677,
+      "palette": [
+        {
+          "hex": "#f7f7f6",
+          "coverage": 0.8579
+        },
+        {
+          "hex": "#1f1f20",
+          "coverage": 0.0825
+        },
+        {
+          "hex": "#575756",
+          "coverage": 0.0251
+        },
+        {
+          "hex": "#888887",
+          "coverage": 0.0198
+        },
+        {
+          "hex": "#bcbbba",
+          "coverage": 0.0146
+        }
+      ],
+      "detail": {
+        "energy": 53.65
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "form",
+      "kind": "control",
+      "note": "Starting point and destination fields, swap and find route button",
+      "grid": "A2:C5",
+      "snap": false,
+      "box": {
+        "x": 0.0235,
+        "y": 0.2155,
+        "w": 0.2508,
+        "h": 0.2873
+      },
+      "px": {
+        "x": 35,
+        "y": 228,
+        "w": 373,
+        "h": 304
+      },
+      "aspect": 1.227,
+      "palette": [
+        {
+          "hex": "#f7f7f7",
+          "coverage": 0.8021
+        },
+        {
+          "hex": "#264837",
+          "coverage": 0.1689
+        },
+        {
+          "hex": "#c0c1be",
+          "coverage": 0.0125
+        },
+        {
+          "hex": "#505050",
+          "coverage": 0.0084
+        },
+        {
+          "hex": "#171717",
+          "coverage": 0.0081
+        }
+      ],
+      "detail": {
+        "energy": 20.151
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "route-options",
+      "kind": "control",
+      "note": "Two selectable route results",
+      "grid": "A5:C6",
+      "snap": false,
+      "box": {
+        "x": 0.0235,
+        "y": 0.5444,
+        "w": 0.2508,
+        "h": 0.1512
+      },
+      "px": {
+        "x": 35,
+        "y": 576,
+        "w": 373,
+        "h": 160
+      },
+      "aspect": 2.3312,
+      "palette": [
+        {
+          "hex": "#f6f7f1",
+          "coverage": 0.9485
+        },
+        {
+          "hex": "#b7c0b9",
+          "coverage": 0.0247
+        },
+        {
+          "hex": "#848484",
+          "coverage": 0.0129
+        },
+        {
+          "hex": "#141313",
+          "coverage": 0.0097
+        },
+        {
+          "hex": "#474747",
+          "coverage": 0.0042
+        }
+      ],
+      "detail": {
+        "energy": 25.2587
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "directions",
+      "kind": "text",
+      "note": "Three ordered directions",
+      "grid": "A7:C9",
+      "snap": false,
+      "box": {
+        "x": 0.0235,
+        "y": 0.724,
+        "w": 0.2529,
+        "h": 0.2174
+      },
+      "px": {
+        "x": 35,
+        "y": 766,
+        "w": 376,
+        "h": 230
+      },
+      "aspect": 1.6348,
+      "palette": [
+        {
+          "hex": "#f7f7f6",
+          "coverage": 0.9289
+        },
+        {
+          "hex": "#b0afae",
+          "coverage": 0.0338
+        },
+        {
+          "hex": "#767676",
+          "coverage": 0.0236
+        },
+        {
+          "hex": "#161616",
+          "coverage": 0.01
+        },
+        {
+          "hex": "#3e3e3e",
+          "coverage": 0.0037
+        }
+      ],
+      "detail": {
+        "energy": 26.4324
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "floor-heading",
+      "kind": "text",
+      "note": "Ground floor",
+      "grid": "D1:F1",
+      "snap": false,
+      "box": {
+        "x": 0.3093,
+        "y": 0.1011,
+        "w": 0.2017,
+        "h": 0.0435
+      },
+      "px": {
+        "x": 460,
+        "y": 107,
+        "w": 300,
+        "h": 46
+      },
+      "aspect": 6.5217,
+      "palette": [
+        {
+          "hex": "#f7f7ea",
+          "coverage": 0.9074
+        },
+        {
+          "hex": "#121212",
+          "coverage": 0.0551
+        },
+        {
+          "hex": "#7c7e79",
+          "coverage": 0.0163
+        },
+        {
+          "hex": "#b9b9b6",
+          "coverage": 0.0131
+        },
+        {
+          "hex": "#494846",
+          "coverage": 0.0081
+        }
+      ],
+      "detail": {
+        "energy": 38.947
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "floor-controls",
+      "kind": "control",
+      "note": "G 1 2 floor tabs",
+      "grid": "I0:J1",
+      "snap": false,
+      "box": {
+        "x": 0.8742,
+        "y": 0.0926,
+        "w": 0.1103,
+        "h": 0.0473
+      },
+      "px": {
+        "x": 1300,
+        "y": 98,
+        "w": 164,
+        "h": 50
+      },
+      "aspect": 3.28,
+      "palette": [
+        {
+          "hex": "#f7f6ed",
+          "coverage": 0.7309
+        },
+        {
+          "hex": "#1b4a38",
+          "coverage": 0.2131
+        },
+        {
+          "hex": "#bcc8c5",
+          "coverage": 0.0355
+        },
+        {
+          "hex": "#6a8979",
+          "coverage": 0.0151
+        },
+        {
+          "hex": "#454545",
+          "coverage": 0.0054
+        }
+      ],
+      "detail": {
+        "energy": 11.807
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "floor-plan",
+      "kind": "plate",
+      "note": "Warm ivory overhead architectural hotel floor plan, gray walls subtle furniture and greenery; labels and route are interactive overlays",
+      "grid": "D1:J8",
+      "snap": false,
+      "box": {
+        "x": 0.3093,
+        "y": 0.1635,
+        "w": 0.6732,
+        "h": 0.6824
+      },
+      "px": {
+        "x": 460,
+        "y": 173,
+        "w": 1001,
+        "h": 722
+      },
+      "aspect": 1.3864,
+      "palette": [
+        {
+          "hex": "#eee9e5",
+          "coverage": 0.8388
+        },
+        {
+          "hex": "#9f9e99",
+          "coverage": 0.1042
+        },
+        {
+          "hex": "#807e7a",
+          "coverage": 0.0291
+        },
+        {
+          "hex": "#c0c1b2",
+          "coverage": 0.0247
+        },
+        {
+          "hex": "#18643c",
+          "coverage": 0.0032
+        }
+      ],
+      "detail": {
+        "energy": 22.9451
+      },
+      "medium": "raster",
+      "clipped": [
+        "left"
+      ],
+      "plate": "assets/plates/floor-plan.png",
+      "text": null
+    },
+    {
+      "id": "legend",
+      "kind": "control",
+      "note": "Route legend and zoom controls",
+      "grid": "D8:J9",
+      "snap": false,
+      "box": {
+        "x": 0.3093,
+        "y": 0.8639,
+        "w": 0.6725,
+        "h": 0.0756
+      },
+      "px": {
+        "x": 460,
+        "y": 914,
+        "w": 1000,
+        "h": 80
+      },
+      "aspect": 12.5,
+      "palette": [
+        {
+          "hex": "#f8f2e9",
+          "coverage": 0.9856
+        },
+        {
+          "hex": "#727272",
+          "coverage": 0.0069
+        },
+        {
+          "hex": "#acacab",
+          "coverage": 0.006
+        },
+        {
+          "hex": "#086838",
+          "coverage": 0.0014
+        }
+      ],
+      "detail": {
+        "energy": 7.9395
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "disclosure",
+      "kind": "text",
+      "note": "Sample layout and distances. Select your starting point manually.",
+      "grid": "H9:J9",
+      "snap": false,
+      "box": {
+        "x": 0.7263,
+        "y": 0.9537,
+        "w": 0.2623,
+        "h": 0.0217
+      },
+      "px": {
+        "x": 1080,
+        "y": 1009,
+        "w": 390,
+        "h": 23
+      },
+      "aspect": 16.9565,
+      "palette": [
+        {
+          "hex": "#f5f1e9",
+          "coverage": 0.8567
+        },
+        {
+          "hex": "#7c7b7a",
+          "coverage": 0.0587
+        },
+        {
+          "hex": "#a1a09f",
+          "coverage": 0.0442
+        },
+        {
+          "hex": "#c2c2c0",
+          "coverage": 0.0385
+        },
+        {
+          "hex": "#706070",
+          "coverage": 0.0019
+        }
+      ],
+      "detail": {
+        "energy": 33.4051
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    }
+  ]
+}

@@ -1,0 +1,147 @@
+{
+  "regions": [
+    {
+      "id": "wordmark",
+      "kind": "text",
+      "box": {
+        "y": 0.01890359168241966,
+        "h": 0.0330812854442344,
+        "x": 0.023537323470073975,
+        "w": 0.19838601210490922
+      },
+      "note": "LINDEN HOTEL wordmark",
+      "grid": "A0:C0",
+      "snap": false
+    },
+    {
+      "id": "nav",
+      "kind": "control",
+      "box": {
+        "y": 0.01890359168241966,
+        "h": 0.04158790170132325,
+        "x": 0.6859448554135844,
+        "w": 0.29589778076664425
+      },
+      "note": "Navigation and demo disclosure",
+      "grid": "G0:J0",
+      "snap": false
+    },
+    {
+      "id": "headline",
+      "kind": "text",
+      "box": {
+        "y": 0.1001890359168242,
+        "h": 0.08790170132325142,
+        "x": 0.023537323470073975,
+        "w": 0.24815063887020847
+      },
+      "note": "A clear path to your destination.",
+      "grid": "A1:C1",
+      "snap": false
+    },
+    {
+      "id": "form",
+      "kind": "control",
+      "box": {
+        "y": 0.21550094517958412,
+        "h": 0.28733459357277885,
+        "x": 0.023537323470073975,
+        "w": 0.2508406186953598
+      },
+      "note": "Starting point and destination fields, swap and find route button",
+      "grid": "A2:C5",
+      "snap": false
+    },
+    {
+      "id": "route-options",
+      "kind": "control",
+      "box": {
+        "y": 0.5444234404536862,
+        "h": 0.15122873345935728,
+        "x": 0.023537323470073975,
+        "w": 0.2508406186953598
+      },
+      "note": "Two selectable route results",
+      "grid": "A5:C6",
+      "snap": false
+    },
+    {
+      "id": "directions",
+      "kind": "text",
+      "box": {
+        "y": 0.724007561436673,
+        "h": 0.21739130434782608,
+        "x": 0.023537323470073975,
+        "w": 0.2528581035642233
+      },
+      "note": "Three ordered directions",
+      "grid": "A7:C9",
+      "snap": false
+    },
+    {
+      "id": "floor-heading",
+      "kind": "text",
+      "box": {
+        "y": 0.10113421550094517,
+        "h": 0.043478260869565216,
+        "x": 0.3093476798924008,
+        "w": 0.20174848688634836
+      },
+      "note": "Ground floor",
+      "grid": "D1:F1",
+      "snap": false
+    },
+    {
+      "id": "floor-controls",
+      "kind": "control",
+      "box": {
+        "y": 0.09262759924385633,
+        "h": 0.04725897920604915,
+        "x": 0.8742434431741762,
+        "w": 0.11028917283120376
+      },
+      "note": "G 1 2 floor tabs",
+      "grid": "I0:J1",
+      "snap": false
+    },
+    {
+      "id": "floor-plan",
+      "kind": "plate",
+      "box": {
+        "y": 0.16351606805293006,
+        "h": 0.6824196597353497,
+        "x": 0.3093476798924008,
+        "w": 0.6731674512441157
+      },
+      "note": "Warm ivory overhead architectural hotel floor plan, gray walls subtle furniture and greenery; labels and route are interactive overlays",
+      "grid": "D1:J8",
+      "snap": false
+    },
+    {
+      "id": "legend",
+      "kind": "control",
+      "box": {
+        "y": 0.8638941398865785,
+        "h": 0.07561436672967864,
+        "x": 0.3093476798924008,
+        "w": 0.6724949562878278
+      },
+      "note": "Route legend and zoom controls",
+      "grid": "D8:J9",
+      "snap": false
+    },
+    {
+      "id": "disclosure",
+      "kind": "text",
+      "box": {
+        "y": 0.9536862003780718,
+        "h": 0.021739130434782608,
+        "x": 0.7262945527908541,
+        "w": 0.26227303295225285
+      },
+      "note": "Sample layout and distances. Select your starting point manually.",
+      "grid": "H9:J9",
+      "snap": false
+    }
+  ]
+}
