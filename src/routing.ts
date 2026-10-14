@@ -3,7 +3,7 @@ import { geometryErrors } from './geometry';
 
 export function validateGraph(graph: HotelGraph): string[] {
   const ids = new Set<string>(), edgeIds = new Set<string>(), errors: string[] = [];
-  for (const node of graph.nodes) { if (ids.has(node.id)) errors.push(`Duplicate node: ${node.id}`); ids.add(node.id); }
+  for (const node of graph.nodes) { if (ids.has(node.id)) errors.push(`Duplicate node: ${node.id}`); if(!Number.isFinite(node.x)||!Number.isFinite(node.y))errors.push(`Invalid coordinates: ${node.id}`); ids.add(node.id); }
   for (const edge of graph.edges) {
     if (edgeIds.has(edge.id)) errors.push(`Duplicate edge: ${edge.id}`);
     edgeIds.add(edge.id);
@@ -18,11 +18,11 @@ export function findRoute(graph: HotelGraph, start: string, end: string, mode: R
   const started = performance.now();
   const result: RouteResult = { mode, status: 'invalid', nodeIds: [], edgeIds: [], distance: null, computationMs: 0, visitedNodes: 0 };
   const finish = (patch: Partial<RouteResult>) => ({ ...result, ...patch, computationMs: performance.now() - started });
-  if (!graph.nodes.some(n => n.id === start) || !graph.nodes.some(n => n.id === end)) return finish({ message: 'Choose a starting point and destination from the hotel directory.' });
+  if (!graph.nodes.some(n => n.id === start) || !graph.nodes.some(n => n.id === end)) return finish({ message: 'Choose a starting point and destination from the building directory.' });
   if (validateGraph(graph).length) return finish({ message: 'The map contains invalid connections.' });
   const adjacency = new Map(graph.nodes.map(n => [n.id, [] as { next: string; edgeId: string; distance: number }[]]));
   for (const edge of graph.edges) {
-    if (!edge.traversable || (mode === 'accessible' && (!edge.accessible || edge.kind === 'stairs'))) continue;
+    if (!edge.traversable || edge.reviewed === false || (mode === 'accessible' && (!edge.accessible || edge.kind === 'stairs'))) continue;
     adjacency.get(edge.from)!.push({ next: edge.to, edgeId: edge.id, distance: edge.distance });
     adjacency.get(edge.to)!.push({ next: edge.from, edgeId: edge.id, distance: edge.distance });
   }
@@ -43,7 +43,7 @@ export function findRoute(graph: HotelGraph, start: string, end: string, mode: R
       if (candidate < distances.get(edge.next)!) { distances.set(edge.next, candidate); previous.set(edge.next, { node: id, edge: edge.edgeId }); }
     }
   }
-  if (!settled.has(end)) return finish({ status: 'unreachable', visitedNodes: settled.size, message: mode === 'accessible' ? 'No accessible route connects these locations in the sample map.' : 'No public route connects these locations in the sample map.' });
+  if (!settled.has(end)) return finish({ status: 'unreachable', visitedNodes: settled.size, message: mode === 'accessible' ? 'No accessible route connects these locations in this map.' : 'No public route connects these locations in this map.' });
   const nodeIds = [end], edgeIds: string[] = [];
   let cursor = end;
   while (cursor !== start) { const p = previous.get(cursor)!; nodeIds.unshift(p.node); edgeIds.unshift(p.edge); cursor = p.node; }

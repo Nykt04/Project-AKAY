@@ -12,6 +12,7 @@ import { MapPin } from '@phosphor-icons/react/dist/csr/MapPin';
 import type { MapNode } from './types';
 
 const icons = {
+  facility: MapPin,
   reception: BellSimple, entrance: SignIn, dining: ForkKnife, restroom: Wheelchair,
   stairs: PersonSimpleWalk, elevator: Elevator, lounge: Armchair, room: Bed,
   conference: Users, fitness: Barbell,

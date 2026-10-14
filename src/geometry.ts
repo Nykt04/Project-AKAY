@@ -1,4 +1,5 @@
 import type { Edge, HotelGraph, MapNode, WalkableArea } from './types';
+import { clearSegment } from './scan';
 
 export type Point = [number, number];
 
@@ -38,7 +39,7 @@ export function segmentIsWalkable(from: Point, to: Point, areas: WalkableArea[])
 }
 
 export function geometryErrors(graph: HotelGraph): string[] {
-  if (!graph.walkableAreas) return [];
+  if (!graph.walkableAreas && !graph.clearanceGrids) return [];
   const nodes = Object.fromEntries(graph.nodes.map(node => [node.id, node]));
   const errors: string[] = [];
   for (const edge of graph.edges) {
@@ -46,12 +47,13 @@ export function geometryErrors(graph: HotelGraph): string[] {
     const from = nodes[edge.from], to = nodes[edge.to];
     if (from.floor !== to.floor) {
       if (!['stairs', 'elevator'].includes(edge.kind) || from.category !== edge.kind || to.category !== edge.kind
-        || from.x !== to.x || from.y !== to.y) errors.push(`Invalid floor transition: ${edge.id}`);
+        || (graph.walkableAreas && (from.x !== to.x || from.y !== to.y))) errors.push(`Invalid floor transition: ${edge.id}`);
       continue;
     }
     const points = edgeGeometry(edge, nodes);
     for (let i = 1; i < points.length; i++) {
-      if (!segmentIsWalkable(points[i - 1], points[i], graph.walkableAreas[from.floor])) {
+      const areas = graph.walkableAreas?.[from.floor], grid = graph.clearanceGrids?.[from.floor];
+      if ((areas && !segmentIsWalkable(points[i - 1], points[i], areas)) || (grid && !clearSegment(grid,points[i-1],points[i]))) {
         errors.push(`Path leaves mapped walkable space: ${edge.id}, segment ${i}`);
       }
     }

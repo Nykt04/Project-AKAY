@@ -1,3 +1,4 @@
+import { formatDistance } from './format';
 import { useState } from 'react';
 import { ArrowRight } from '@phosphor-icons/react/dist/csr/ArrowRight';
 import { ArrowsDownUp } from '@phosphor-icons/react/dist/csr/ArrowsDownUp';
@@ -16,21 +17,24 @@ import { Footprints } from '@phosphor-icons/react/dist/csr/Footprints';
 import { LocationPicker } from './LocationPicker';
 import { HotelMap } from './HotelMap';
 import { ResearchView } from './ResearchView';
-import { hotel, nodeById } from './hotel';
+import { useBuilding } from './buildings';
 import { findRoute } from './routing';
 import { routeDirections, routeFeatures } from './directions';
 import type { FloorId, RouteMode, RouteResult } from './types';
 
-const compute = (start: string, end: string) => ({
+const compute = (hotel: import('./types').HotelGraph, start: string, end: string) => ({
   shortest: findRoute(hotel, start, end, 'shortest'),
   accessible: findRoute(hotel, start, end, 'accessible'),
 });
 
 export function App() {
-  const [start, setStart] = useState('reception'), [end, setEnd] = useState('restaurant');
+  const { building, hotel, nodeById, facilities, floors } = useBuilding();
+  const initialStart = building.sample ? 'reception' : facilities[0]?.id ?? '';
+  const initialEnd = building.sample ? 'restaurant' : facilities[1]?.id ?? '';
+  const [start, setStart] = useState(initialStart), [end, setEnd] = useState(initialEnd);
   const [mode, setMode] = useState<RouteMode>('accessible');
-  const [routes, setRoutes] = useState<{ shortest: RouteResult; accessible: RouteResult } | null>(() => compute('reception', 'restaurant'));
-  const [floor, setFloor] = useState<FloorId>(0), [view, setView] = useState<'guest' | 'research'>('guest');
+  const [routes, setRoutes] = useState<{ shortest: RouteResult; accessible: RouteResult } | null>(() => compute(hotel,initialStart,initialEnd));
+  const [floor, setFloor] = useState<FloorId>(floors[0]?.id ?? 0), [view, setView] = useState<'guest' | 'research'>('guest');
   const [error, setError] = useState(''), [busy, setBusy] = useState(false), [announcement, setAnnouncement] = useState('');
   const selected = routes?.[mode] ?? null, alternative = routes?.[mode === 'accessible' ? 'shortest' : 'accessible'] ?? null;
   const updateStart = (id: string) => { setStart(id); setRoutes(null); setError(''); };
@@ -39,10 +43,10 @@ export function App() {
     if (!start || !end) { setError('Choose both a starting point and a destination.'); return; }
     setBusy(true); setError('');
     window.setTimeout(() => {
-      const next = compute(start, end);
+      const next = compute(hotel,start,end);
       setRoutes(next); setFloor(nodeById[start].floor); setBusy(false);
       const r = next[mode];
-      setAnnouncement(r.status === 'found' ? `${mode === 'accessible' ? 'Accessible' : 'Shortest'} route found: ${r.distance} meters.` : r.message ?? 'No route found.');
+      setAnnouncement(r.status === 'found' ? `${mode === 'accessible' ? 'Accessible' : 'Shortest'} route found: ${formatDistance(r.distance ?? 0)} meters.` : r.message ?? 'No route found.');
     }, 100);
   };
   const changeView = (next: 'guest' | 'research') => { setView(next); window.scrollTo({ top: 0 }); };
@@ -51,18 +55,18 @@ export function App() {
     <a className="skip-link" href="#main-content">Skip to main content</a>
     <header className="site-header">
       <a className="wordmark" href="#" onClick={event => { event.preventDefault(); changeView('guest'); }}>
-        <span className="hotel-emblem" aria-hidden="true"><Tree size={28} weight="light" /></span><span>Linden Hotel</span>
+        <span className="hotel-emblem" aria-hidden="true">{building.sample?<Tree size={28} weight="light" />:<MapTrifold size={28} weight="light" />}</span><span>{building.name}</span>
       </a>
       <nav aria-label="Main navigation">
         <button className={view === 'guest' ? 'active' : ''} aria-current={view === 'guest' ? 'page' : undefined} onClick={() => changeView('guest')}><MapTrifold size={19} aria-hidden="true" />Find your way</button>
         <button className={view === 'research' ? 'active' : ''} aria-current={view === 'research' ? 'page' : undefined} onClick={() => changeView('research')}><Flask size={18} aria-hidden="true" />Research view</button>
       </nav>
-      <span className="demo-label"><span aria-hidden="true" />Demonstration hotel</span>
+      <span className="demo-label"><span aria-hidden="true" />{building.sample ? 'Demonstration hotel' : 'Reviewed map'}</span>
     </header>
     <main id="main-content" tabIndex={-1}>
       {view === 'guest' ? <div className="guest-layout">
         <aside className="route-sidebar" aria-label="Plan your route">
-          <div className="concierge-intro"><h1>A clear path to your destination.</h1><p>A little guidance for a comfortable stay.</p></div>
+          <div className="concierge-intro"><h1>A clear path to your destination.</h1><p>Find a route that suits your mobility needs.</p></div>
           <form onSubmit={event => { event.preventDefault(); find(); }}>
             <LocationPicker label="Starting point" value={start} onChange={updateStart} />
             <div className="swap-row"><button className="icon-button swap-button" type="button" aria-label="Swap starting point and destination" onClick={() => { setStart(end); setEnd(start); setRoutes(null); setError(''); }}><ArrowsDownUp size={20} aria-hidden="true" /></button></div>
@@ -77,19 +81,19 @@ export function App() {
                 {(['shortest', 'accessible'] as const).map(routeMode => {
                   const route = routes[routeMode], Icon = routeMode === 'shortest' ? Footprints : Wheelchair;
                   return <button key={routeMode} type="button" className={`route-choice ${mode === routeMode ? 'selected' : ''}`} aria-pressed={mode === routeMode} onClick={() => {
-                    setMode(routeMode); setAnnouncement(`${routeMode === 'accessible' ? 'Accessible' : 'Shortest'} route selected. ${route.distance !== null ? `${route.distance} meters.` : route.message}`);
+                    setMode(routeMode); setAnnouncement(`${routeMode === 'accessible' ? 'Accessible' : 'Shortest'} route selected. ${route.distance !== null ? `${formatDistance(route.distance ?? 0)} meters.` : route.message}`);
                   }}>
                     <span className="route-choice-icon"><Icon size={24} aria-hidden="true" /></span>
-                    <span className="route-choice-copy"><strong>{routeMode === 'shortest' ? 'Shortest route' : 'Accessible route'}</strong><small>{routeFeatures(route)}</small></span>
-                    <span className="route-choice-distance">{route.distance !== null ? <>{route.distance}<small>meters</small></> : <small>Unavailable</small>}</span>
+                    <span className="route-choice-copy"><strong>{routeMode === 'shortest' ? 'Shortest route' : 'Accessible route'}</strong><small>{routeFeatures(route,hotel)}</small></span>
+                    <span className="route-choice-distance">{route.distance !== null ? <>{formatDistance(route.distance ?? 0)}<small>meters</small></> : <small>Unavailable</small>}</span>
                     <span className="selection-indicator" aria-hidden="true">{mode === routeMode && <Check size={11} weight="bold" />}</span>
                   </button>;
                 })}
               </div>
               {selected?.status === 'found' ? <div className="directions-sheet">
-                <div className="directions-heading"><Path size={20} aria-hidden="true" /><h2>Your directions</h2><span>{selected.distance} m</span></div>
+                <div className="directions-heading"><Path size={20} aria-hidden="true" /><h2>Your directions</h2><span>{formatDistance(selected.distance ?? 0)} m</span></div>
                 <ol className="directions" aria-label="Route directions">
-                  {routeDirections(selected).map((step, index) => {
+                  {routeDirections(selected,hotel,floors).map((step, index) => {
                     const Icon = step.kind === 'elevator' ? Elevator : step.kind === 'stairs' ? PersonSimpleWalk : step.kind === 'ramp' ? Wheelchair : step.kind === 'arrive' ? Check : null;
                     return <li key={`${index}-${step.title}`} className={step.kind === 'arrive' ? 'arrival-step' : undefined}>
                       <span className="step-number">{Icon ? <Icon size={18} aria-hidden="true" /> : index + 1}</span>
@@ -97,10 +101,10 @@ export function App() {
                     </li>;
                   })}
                 </ol>
-              </div> : <div className="no-route" role="status"><Info size={23} weight="light" /><h3>{mode === 'accessible' ? 'No accessible route available' : 'No public route available'}</h3><p>{selected?.message}</p><small>{mode === 'accessible' && routes.shortest.status === 'found' ? 'A route with steps exists. It is shown separately and may not meet your mobility needs.' : 'Try another destination or ask reception for assistance.'}</small></div>}
+              </div> : <div className="no-route" role="status"><Info size={23} weight="light" /><h3>{mode === 'accessible' ? 'No accessible route available' : 'No public route available'}</h3><p>{selected?.message}</p><small>{mode === 'accessible' && routes.shortest.status === 'found' ? 'A standard route exists, but some connections are not marked accessible.' : 'Try another destination or ask staff for assistance.'}</small></div>}
             </>}
           </div>
-          <p className="sidebar-note"><Info size={15} />Routes use the sample map’s recorded access conditions.</p>
+          <p className="sidebar-note"><Info size={15} />Routes use this map’s recorded access conditions.</p>
         </aside>
         <HotelMap floor={floor} onFloor={setFloor} route={selected} alternative={alternative} onDestination={updateEnd} />
       </div> : <>

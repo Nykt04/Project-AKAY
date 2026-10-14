@@ -1,4 +1,4 @@
-# Linden Hotel Facility Finder
+# Accessibility-aware Indoor Facility Finder
 <!-- impeccable:product-schema 1 -->
 
 ## Platform
@@ -8,16 +8,16 @@ web
 Delegated by user: React, TypeScript and Vite, using the Product Design web prototype template. Local browser computation; no backend.
 
 ## Users
-Hotel guests, including people with mobility limitations, using phones and laptops. Student researchers demonstrating the routing algorithm.
+Visitors with mobility limitations using phones and laptops; establishment staff preparing floor plans; student researchers demonstrating the routing algorithm.
 
 ## Product Purpose
-Find a hotel facility and compare the shortest traversable route with a route that excludes stairs and inaccessible connections, using real Dijkstra computation.
+Find a building facility and compare the shortest traversable route with a route that excludes stairs and inaccessible connections, using real Dijkstra computation.
 
 ## Operating Context
-Fictional Linden Hotel, three floors, illustrative geometry and meter distances. Manual start and destination selection. Research view runs predefined checks with independent expectations and records measured computation time.
+Multiple user-created establishments with uploaded floor plans, plus fictional three-floor Linden Hotel as a sample. Manual start and destination selection. Research view runs predefined checks with independent expectations and records measured computation time.
 
 ## Capabilities and Constraints
-Searchable endpoints, route comparison, floor switching, map zoom, ordered text directions, no-route handling. No live positioning, live obstacle detection, booking, accounts or administration. No claim of real-building accessibility certification.
+Searchable endpoints, route comparison, floor switching, map zoom, ordered text directions, no-route handling. Assisted image scanning, graph editing, scale calibration, access review, multi-floor links, local IndexedDB storage and JSON export. No live positioning, live obstacle detection, bookings, shared accounts or server administration. No claim of real-building accessibility certification.
 
 ## Brand Commitments
 User selected the first displayed concept: Concierge Desk, ivory and evergreen with elegant serif headings, restrained controls and a large architectural map. Keep this visual reference authoritative.
@@ -28,4 +28,4 @@ Latest preference: a richer skeuomorphic finish with purposeful icons, warm pape
 Research manuscript read from C:/Users/Gian Karlo/Downloads/Re-Iterated-BSCS-Research-Manuscript-Format.docx. Approved reference stored under .impeccable/mocks/approved.png. No real hotel survey supplied.
 
 ## Accessibility & Inclusion
-Keyboard-operable controls, clear focus, adequate contrast, reduced motion, text directions independent of map. Mobility-aware filtering is based on static demonstration attributes.
+Keyboard-operable controls, clear focus, adequate contrast, reduced motion, text directions independent of map. Mobility-aware filtering uses static sample attributes or staff-reviewed connection attributes. Image scanning does not infer or certify real accessibility.
