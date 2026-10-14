@@ -19,3 +19,5 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 The user expanded the product beyond hotels and selected assisted scan: browser detection of candidate nodes and connections, followed by staff correction, destination labels, scale calibration and confirmed accessibility. Preserve Linden Hotel as a clearly labeled sample. Custom establishments and floor plans are local browser data. No logo work for now.
 
 Do not claim that a floor-plan image determines real accessibility, room permissions or correct doorways automatically. Unreviewed links must be excluded from routing. Uploaded floors need calibration and explicit review before guest use. Reuse the paper/evergreen/brass visual system for the map studio; no new concept round.
+
+The user plans to deploy on Vercel. Keep vercel.json configured for Vite, npm run build:vercel, and dist/client. Preserve the separate Sites build and wrapper files. Vercel builds must not depend on ignored local .openai files. Hosting does not synchronize browser-local maps.

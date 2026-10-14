@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && node scripts/prepare-sites-build.mjs",
+    "build:vercel": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test:sites": "node --test tests/sites-worker.test.mjs",
     "test": "tsx --test tests/routing.test.ts tests/scan.test.ts tests/building-ui.test.ts",

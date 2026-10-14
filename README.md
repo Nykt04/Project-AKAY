@@ -35,7 +35,21 @@ Floor images and graphs are saved in IndexedDB in this browser on this origin. T
 - Open Research view to inspect the current graph and measured computation time.
 - Run reference scenarios. These are software tests against the fixed sample and synthetic graphs, not validation of uploaded floor geometry or participant-study results.
 
-## Development
+## Deploy on Vercel
+
+The root `vercel.json` selects Vite, `npm run build:vercel` and output directory `dist/client`. The Vercel build type-checks and bundles the browser app without requiring local Sites metadata in the ignored `.openai` folder. The original `npm run build` still prepares the Sites package.
+
+1. Push this project to a GitHub repository, including `package-lock.json`, `vercel.json`, `src`, `public`, the Vite/TypeScript config files and `index.html`. Keep the project structure intact; exclude `node_modules` and generated `dist`.
+2. In Vercel choose **Add New → Project**, connect GitHub and import that repository.
+3. Set Root Directory to the directory containing `package.json` (leave the default if the repository root is this project).
+4. Verify framework **Vite**, build **npm run build:vercel**, output **dist/client**, then select **Deploy**. The current app needs no environment variables or database.
+5. Test the generated HTTPS URL on desktop and phone. Upload a clean floor-plan image, scan/review/calibrate it, create a route and reload to check local saving. Reference-test success does not replace this check.
+
+Alternative without GitHub: from the project root, run `npx vercel`, sign in and follow its project prompts for a preview deployment. Publish with `npx vercel --prod` when ready.
+
+Uploaded maps stay in the browser that created them. The deployed domain has different storage from localhost, and Vercel preview domains also have separate storage. A shared visitor map requires bundled reviewed map data or a separate shared-storage/publishing feature.
+
+## Development commands
 
 ```powershell
 npm install
