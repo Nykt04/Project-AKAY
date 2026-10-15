@@ -21,6 +21,7 @@ test('an inaccessible custom connection is not rendered as a successful accessib
 });
 test('studio exposes upload, calibration, review and keyboard editing controls',()=>{
   const html=renderToStaticMarkup(createElement(FloorPlanStudio,{initial:{...building,status:'draft'},onSaved:()=>{},onUse:()=>{},onSaving:()=>{}}));
-  for(const label of ['Upload floor plan','Scan pathways','Mark two known points','Edit with coordinates','Use reviewed map','unreviewed'])assert.ok(html.includes(label),label);
+  for(const label of ['Upload floor plan','Scan with AI','Local scan','Staff scan code','Send this floor image to Google','Mark two known points','Edit with coordinates','Use reviewed map','unreviewed'])assert.ok(html.includes(label),label);
   assert.ok(html.includes('Confirm step-free access'));
+  assert.ok(!html.includes('>Corridor seed</button>'), 'AI mode must not offer a seed that it ignores');
 });

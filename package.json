@@ -9,7 +9,7 @@
     "build:vercel": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test:sites": "node --test tests/sites-worker.test.mjs",
-    "test": "tsx --test tests/routing.test.ts tests/scan.test.ts tests/building-ui.test.ts",
+    "test": "tsx --test tests/routing.test.ts tests/scan.test.ts tests/building-ui.test.ts tests/aiGraph.test.ts tests/ai-scan-api.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

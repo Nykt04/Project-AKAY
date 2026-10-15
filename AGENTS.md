@@ -21,3 +21,6 @@ The user expanded the product beyond hotels and selected assisted scan: browser 
 Do not claim that a floor-plan image determines real accessibility, room permissions or correct doorways automatically. Unreviewed links must be excluded from routing. Uploaded floors need calibration and explicit review before guest use. Reuse the paper/evergreen/brass visual system for the map studio; no new concept round.
 
 The user plans to deploy on Vercel. Keep vercel.json configured for Vite, npm run build:vercel, and dist/client. Preserve the separate Sites build and wrapper files. Vercel builds must not depend on ignored local .openai files. Hosting does not synchronize browser-local maps.
+
+
+The user requested automatic AI scanning and selected a free-tier cloud API for the Vercel prototype. Gemini scanning is optional and server-side; keep GEMINI_API_KEY out of client bundles. Require explicit image-sharing consent and the separate staff scan code. AI-generated locations/edges remain unreviewed; never trust model accessibility or distance claims, and block obstacle crossings and room shortcuts. Preserve the no-key local scan fallback. Free-tier eligibility/quotas are provider/account-dependent; never promise unlimited free service or silently fall back to paid models.

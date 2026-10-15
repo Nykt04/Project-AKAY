@@ -5,7 +5,7 @@
 web
 
 ## Stack
-Delegated by user: React, TypeScript and Vite, using the Product Design web prototype template. Local browser computation; no backend.
+Delegated by user: React, TypeScript and Vite, using the Product Design web prototype template. Browser routing and local scanning, with an optional Vercel server endpoint for Gemini image analysis.
 
 ## Users
 Visitors with mobility limitations using phones and laptops; establishment staff preparing floor plans; student researchers demonstrating the routing algorithm.
@@ -17,7 +17,7 @@ Find a building facility and compare the shortest traversable route with a route
 Multiple user-created establishments with uploaded floor plans, plus fictional three-floor Linden Hotel as a sample. Manual start and destination selection. Research view runs predefined checks with independent expectations and records measured computation time.
 
 ## Capabilities and Constraints
-Searchable endpoints, route comparison, floor switching, map zoom, ordered text directions, no-route handling. Assisted image scanning, graph editing, scale calibration, access review, multi-floor links, local IndexedDB storage and JSON export. No live positioning, live obstacle detection, bookings, shared accounts or server administration. No claim of real-building accessibility certification.
+Searchable endpoints, route comparison, floor switching, map zoom, ordered text directions, no-route handling. Optional AI detection of labeled destinations and draft connections, assisted local image scanning, graph editing, scale calibration, access review, multi-floor links, local IndexedDB storage and JSON export. No live positioning, live obstacle detection, bookings, shared accounts or server administration. No claim of real-building accessibility certification.
 
 ## Brand Commitments
 User selected the first displayed concept: Concierge Desk, ivory and evergreen with elegant serif headings, restrained controls and a large architectural map. Keep this visual reference authoritative.

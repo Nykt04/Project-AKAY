@@ -9,12 +9,13 @@ import { activationErrors, calibratedGraph, connectionError, floorRaster, readFl
 import { buildClearanceGrid, clearSegment, type ScanResult } from './scan';
 import { edgeGeometry } from './geometry';
 import type { Edge, MapNode, PathKind } from './types';
+import { scanWithAi } from './aiScan';
 
 type Tool = 'select'|'seed'|'scale'|'add'|'connect'|'move'|'block'|'open';
 const categories:NonNullable<MapNode['category']>[]=['facility','entrance','room','restroom','elevator','stairs','dining','reception','lounge','conference','fitness'];
 const tools: {id:Tool;label:string;help:string}[] = [
   {id:'select',label:'Select',help:'Select a node or a connection to inspect and edit it.'},
-  {id:'seed',label:'Corridor seed',help:'Click inside a clear corridor, then scan. Only its connected walking area will be traced.'},
+  {id:'seed',label:'Corridor seed',help:'Local scan only: click inside a clear corridor, then scan. Only its connected walking area will be traced.'},
   {id:'scale',label:'Set scale',help:'Click two points with a known real-world distance, then enter that distance in meters.'},
   {id:'add',label:'Add node',help:'Click on clear space to add a junction or destination. Use intermediate nodes to turn around corners.'},
   {id:'connect',label:'Connect',help:'Select two nodes to connect them. Straight connections through detected walls are rejected.'},
@@ -34,6 +35,7 @@ export function FloorPlanStudio({initial,onSaved,onUse,onSaving}:{initial:Buildi
   const [zoom,setZoom]=useState(1),[revision,setRevision]=useState(0);
   const [pointX,setPointX]=useState(''),[pointY,setPointY]=useState(''),[connectTo,setConnectTo]=useState('');
   const [persistedAt,setPersistedAt]=useState(initial.updatedAt);
+  const [scanMethod,setScanMethod]=useState<'local'|'ai'>('ai'),[scanCode,setScanCode]=useState(''),[aiConsent,setAiConsent]=useState(false);
   const history=useRef<Building[]>([]),worker=useRef<Worker|null>(null),saveTimer=useRef<ReturnType<typeof setTimeout>|null>(null),saveQueue=useRef(Promise.resolve()),latestSaved=useRef(initial.updatedAt);
   const floor=draft.floors.find(f=>f.id===floorId),nodes=draft.graph.nodes.filter(n=>n.floor===floorId),lookup=Object.fromEntries(draft.graph.nodes.map(n=>[n.id,n]));
   const edges=draft.graph.edges.filter(e=>lookup[e.from]?.floor===floorId&&lookup[e.to]?.floor===floorId),grid=draft.graph.clearanceGrids?.[floorId];
@@ -74,19 +76,26 @@ export function FloorPlanStudio({initial,onSaved,onUse,onSaving}:{initial:Buildi
       const result=await readFloorImage(file,id),mask=buildClearanceGrid({...result.scan,threshold,padding,floor:id});
       commit(b=>({...b,floors:[...b.floors,result.floor],graph:{...b.graph,clearanceGrids:{...b.graph.clearanceGrids,[id]:mask}}}));
       setFloorId(id);setSeed(undefined);setSelected('');setScalePoints([]);setZoom(1);
-      setMessage('Floor uploaded. Choose a corridor seed for better results, or scan the largest enclosed area.');
+      setAiConsent(false);setMessage('Floor uploaded. Choose AI scanning for labeled locations, or Local scan for pathway detection without sending the image.');
     }catch(error){setErrors([error instanceof Error?error.message:'Could not read this image.']);}finally{setBusy(false);}
   };
   const scan=async()=>{
-    if(!floor)return;setBusy(true);setErrors([]);setMessage('Detecting free space and tracing candidate pathways…');
+    if(!floor)return;
+    if(scanMethod==='ai'&&(!aiConsent||!scanCode)){setErrors(['Enter the staff scan code and confirm sending this image to Google.']);return;}
+    setBusy(true);setErrors([]);setMessage(scanMethod==='ai'?'AI is identifying locations and draft pathways. This can take up to a minute…':'Detecting free space and tracing candidate pathways…');
     try{
-      const raster=await floorRaster(floor),active=new Worker(new URL('./scan.worker.ts',import.meta.url),{type:'module'});worker.current=active;
-      const result=await new Promise<ScanResult>((resolve,reject)=>{
+      const raster=await floorRaster(floor);
+      let result:ScanResult;
+      if(scanMethod==='ai')result=await scanWithAi(floor,buildClearanceGrid({...raster,threshold,padding,floor:floor.id}),scanCode);
+      else {
+        const active=new Worker(new URL('./scan.worker.ts',import.meta.url),{type:'module'});worker.current=active;
+        result=await new Promise<ScanResult>((resolve,reject)=>{
         const timeout=setTimeout(()=>{active.terminate();reject(new Error('The scan took too long. Try a simpler or smaller plan.'));},20000);
         active.onmessage=e=>{clearTimeout(timeout);active.terminate();e.data.error?reject(new Error(e.data.error)):resolve(e.data.result);};
         active.onerror=()=>{clearTimeout(timeout);active.terminate();reject(new Error('The scanner could not start. Reload and try again.'));};
         active.postMessage({...raster,threshold,padding,floor:floor.id,seed});
-      });
+        });
+      }
       commit(b=>{
         const retained=b.graph.nodes.filter(n=>n.floor!==floor.id),ids=new Set(retained.map(n=>n.id));
         return {...b,graph:{...b.graph,nodes:[...retained,...result.nodes],edges:[...b.graph.edges.filter(e=>ids.has(e.from)&&ids.has(e.to)),...result.edges],clearanceGrids:{...b.graph.clearanceGrids,[floor.id]:result.grid}}};
@@ -115,7 +124,7 @@ export function FloorPlanStudio({initial,onSaved,onUse,onSaving}:{initial:Buildi
   const applyPoint=(point:[number,number])=>{
     if(busy||!floor)return;
     if(point.some(v=>!Number.isFinite(v))||point[0]<0||point[1]<0||point[0]>=floor.width||point[1]>=floor.height){setErrors(['Enter a point within the floor image bounds.']);return;}
-    if(tool==='seed'){setSeed(point);setMessage('Corridor seed set. Select Scan pathways.');}
+    if(tool==='seed'){setSeed(point);setMessage('Local corridor seed set. Select Scan pathways.');}
     else if(tool==='scale')setScalePoints(p=>p.length===2?[point]:[...p,point]);
     else if(tool==='block'||tool==='open')paint(point);
     else if(tool==='add'||tool==='move'){
@@ -154,23 +163,26 @@ export function FloorPlanStudio({initial,onSaved,onUse,onSaving}:{initial:Buildi
       <h2>Your floor plans</h2>
       <label className="upload-control"><UploadSimple size={24}/><strong>Upload a floor plan</strong><span>PNG, JPG or WebP · up to 12 MB</span><input type="file" accept="image/png,image/jpeg,image/webp" aria-label="Upload floor plan" onChange={e=>{upload(e.target.files?.[0]);e.target.value='';}}/></label>
       <p className="field-hint">Use a clear top-down drawing. Export PDF or CAD plans as images first.</p>
-      {floor&&<><label>Current floor<select value={floorId} onChange={e=>{setFloorId(Number(e.target.value));setReviewChecked(false);setSeed(undefined);setScalePoints([]);setSelected('');setReplaceChecked(false);setZoom(1);}}>{draft.floors.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}</select></label>
+      {floor&&<><label>Current floor<select value={floorId} onChange={e=>{setFloorId(Number(e.target.value));setReviewChecked(false);setAiConsent(false);setSeed(undefined);setScalePoints([]);setSelected('');setReplaceChecked(false);setZoom(1);}}>{draft.floors.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}</select></label>
         <label>Floor name<input value={floor.name} maxLength={60} onChange={e=>commit(b=>({...b,floors:b.floors.map(f=>f.id===floorId?{...f,name:e.target.value,short:e.target.value.slice(0,8)}:f)}))}/></label>
-        <h2>Detect pathways</h2><p className="field-hint">The scan traces connected light areas between dark walls. Text, furniture and door symbols can require correction. Colored renderings are less reliable.</p>
+        <h2>Detect pathways</h2>
+        <label>Scanning method<select value={scanMethod} onChange={e=>{const method=e.target.value as 'local'|'ai';setScanMethod(method);if(method==='ai'&&tool==='seed')setTool('select');}}><option value="ai">AI scan · locations &amp; pathways</option><option value="local">Local scan · pathways only</option></select></label>
+        {scanMethod==='ai'&&<><p className="field-hint">Gemini proposes room labels, door connections and corridor paths. AI can miss or misread details; every result stays a draft.</p><label>Staff scan code<input type="password" autoComplete="off" value={scanCode} onChange={e=>setScanCode(e.target.value)} placeholder="Code from the project owner"/></label><label className="check-label"><input type="checkbox" checked={aiConsent} onChange={e=>setAiConsent(e.target.checked)}/>Send this floor image to Google for AI analysis.</label><p className="field-hint">Google’s free tier has usage limits and may use submitted content to improve its products. Use a plan you are allowed to share. <a href="https://ai.google.dev/gemini-api/docs/pricing" target="_blank" rel="noreferrer">Free-tier details</a></p><details><summary>Set up AI scanning</summary><p className="field-hint">The project owner adds GEMINI_API_KEY and AI_SCAN_ACCESS_CODE in Vercel’s environment settings, then redeploys. The staff code is separate from the API key. Do not enter the API key here. Local scan works without setup.</p></details></>}
+        <p className="field-hint">The obstacle check uses light areas between dark walls. Local scan traces these areas; AI scan proposes labeled routes against the same mask. Text, furniture and door symbols can require correction. Colored renderings are less reliable.</p>
         <label>Wall threshold <output>{threshold}</output><input type="range" min="40" max="230" value={threshold} onChange={e=>setThreshold(Number(e.target.value))}/></label>
         <label>Wall padding<select value={padding} onChange={e=>setPadding(Number(e.target.value))}><option value={0}>None — preserve narrow doors</option><option value={1}>1 scan cell</option><option value={2}>2 scan cells</option></select></label>
-        {seed&&<button className="text-button" onClick={()=>setSeed(undefined)}>Clear corridor seed</button>}
+        {seed&&scanMethod==='local'&&<button className="text-button" onClick={()=>setSeed(undefined)}>Clear corridor seed</button>}
         {nodes.length>0&&<label className="check-label"><input type="checkbox" checked={replaceChecked} onChange={e=>setReplaceChecked(e.target.checked)}/>Replace this floor’s nodes, links and obstacle corrections when rescanning</label>}
-        <button className="primary-button scan-button" disabled={nodes.length>0&&!replaceChecked} onClick={scan}><Scan size={20}/>{busy?'Scanning…':'Scan pathways'}</button>
+        <button className="primary-button scan-button" disabled={(nodes.length>0&&!replaceChecked)||(scanMethod==='ai'&&(!aiConsent||!scanCode))} onClick={scan}><Scan size={20}/>{busy?'Scanning…':scanMethod==='ai'?'Scan with AI':'Scan pathways'}</button>
         <h2>Distance scale</h2><p className="field-hint">{floor.metersPerPixel?`Calibrated · ${(floor.metersPerPixel*100).toFixed(2)} m per 100 image pixels`:'Not calibrated. Image pixels are not meters.'}</p>
         <button className="secondary-button" onClick={()=>{setTool('scale');setScalePoints([]);}}>Mark two known points</button>
         <label>Distance between points (m)<input type="number" min="0.01" step="any" value={knownDistance} onChange={e=>setKnownDistance(e.target.value)}/></label><button className="secondary-button" disabled={scalePoints.length!==2||Number(knownDistance)<=0} onClick={calibrate}>Apply scale ({scalePoints.length}/2 points)</button>
       </>}
     </fieldset></aside>
     <section className="studio-main" aria-label="Plan editor">
-      {!floor?<div className="upload-empty"><UploadSimple size={46} weight="light"/><h2>Start with your floor plan.</h2><p>Each establishment keeps its own plans, destinations and accessibility settings. Files stay in this browser.</p></div>:<>
+      {!floor?<div className="upload-empty"><UploadSimple size={46} weight="light"/><h2>Start with your floor plan.</h2><p>Each establishment keeps its own plans, destinations and accessibility settings. Maps are saved in this browser. AI scanning sends the selected image to Google only when you confirm.</p></div>:<>
         <div className="editor-title"><div><h2>{floor.name}</h2><p>{nodes.length} nodes · {edges.length} connections · {unreviewed} unreviewed across all floors</p></div><div className="editor-zoom"><button aria-label="Zoom editor out" disabled={zoom<=1} onClick={()=>setZoom(v=>Math.max(1,v-.25))}>−</button><span>{Math.round(zoom*100)}%</span><button aria-label="Zoom editor in" disabled={zoom>=3} onClick={()=>setZoom(v=>Math.min(3,v+.25))}>+</button></div></div>
-        <div className="editor-toolbar" role="group" aria-label="Editing tool">{tools.map(t=><button key={t.id} disabled={busy} aria-pressed={tool===t.id} onClick={()=>setTool(t.id)}>{t.label}</button>)}<button disabled={!history.current.length||busy} onClick={()=>{const previous=history.current.pop();if(previous){setDraft({...previous,status:'draft',updatedAt:new Date().toISOString()});setRevision(revision+1);setReviewChecked(false);setErrors([]);}}}>Undo</button></div>
+        <div className="editor-toolbar" role="group" aria-label="Editing tool">{tools.filter(t=>scanMethod==='local'||t.id!=='seed').map(t=><button key={t.id} disabled={busy} aria-pressed={tool===t.id} onClick={()=>setTool(t.id)}>{t.label}</button>)}<button disabled={!history.current.length||busy} onClick={()=>{const previous=history.current.pop();if(previous){setDraft({...previous,status:'draft',updatedAt:new Date().toISOString()});setRevision(revision+1);setReviewChecked(false);setErrors([]);}}}>Undo</button></div>
         <p className="tool-help"><Info size={16}/>{tools.find(t=>t.id===tool)?.help}</p>
         <label className="check-label"><input type="checkbox" checked={showMask} onChange={e=>setShowMask(e.target.checked)}/>Show detected obstacles (red)</label>
         <div className="editor-scroll"><div className="editor-canvas" style={{width:`${zoom*100}%`,aspectRatio:`${floor.width}/${floor.height}`}}><img src={floor.image} alt={`Uploaded plan for ${floor.name}`} draggable={false}/>
@@ -178,7 +190,7 @@ export function FloorPlanStudio({initial,onSaved,onUse,onSaving}:{initial:Buildi
             {showMask&&grid&&<path className="obstacle-mask" d={grid.cells.map((free,i)=>free?'':`M${i%grid.width*floor.width/grid.width},${Math.floor(i/grid.width)*floor.height/grid.height}h${floor.width/grid.width}v${floor.height/grid.height}h-${floor.width/grid.width}z`).join('')}/>}
             {edges.map(e=><polyline key={e.id} points={edgeGeometry(e,lookup).map(p=>p.join(',')).join(' ')} className={`editor-edge ${!e.traversable?'blocked':e.reviewed?e.accessible?'accessible':'standard':'unreviewed'} ${selected===e.id?'chosen':''}`} role="button" tabIndex={0} aria-label={`Connection ${lookup[e.from].name} to ${lookup[e.to].name}`} onPointerDown={event=>{if(['select','connect','move'].includes(tool)){event.stopPropagation();pick(e.id);}}} onKeyDown={event=>{if(event.key==='Enter'){event.preventDefault();pick(e.id);}}}/>) }
             {nodes.map(n=><g key={n.id} role="button" tabIndex={0} aria-label={`Node ${n.name}`} onPointerDown={event=>{if(['select','connect','move'].includes(tool)){event.stopPropagation();pick(n.id);}}} onKeyDown={event=>{if(event.key==='Enter'){event.preventDefault();pick(n.id);}}}><circle cx={n.x} cy={n.y} r={selected===n.id?9:6} className={`editor-node ${n.facility?'facility':''} ${selected===n.id?'chosen':''}`}/>{n.facility&&<text x={n.x+10} y={n.y-10} className="editor-node-label">{n.name}</text>}</g>)}
-            {seed&&<circle cx={seed[0]} cy={seed[1]} r={11} className="seed-point"/>}
+            {seed&&scanMethod==='local'&&<circle cx={seed[0]} cy={seed[1]} r={11} className="seed-point"/>}
             {scalePoints.length===2&&<line x1={scalePoints[0][0]} y1={scalePoints[0][1]} x2={scalePoints[1][0]} y2={scalePoints[1][1]} className="scale-line"/>}
             {scalePoints.map((p,i)=><circle key={i} cx={p[0]} cy={p[1]} r={8} className="seed-point"/>)}
           </svg></div></div>
