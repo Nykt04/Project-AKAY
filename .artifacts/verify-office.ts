@@ -1,0 +1,12 @@
+import fs from 'node:fs/promises';
+import {aiGraphToDraft} from '../src/aiScan';
+import {buildClearanceGrid,clearSegment} from '../src/scan';
+import {edgeGeometry} from '../src/geometry';
+const response=JSON.parse(await fs.readFile(process.argv[2]??'.artifacts/office-ai-result.json','utf8'));
+const input=JSON.parse(await fs.readFile('.artifacts/office-mask.json','utf8'));
+const floor={id:0,name:'Office',short:'G',description:'Actual user-supplied plan',image:'',width:input.imageWidth,height:input.imageHeight};
+const draft=aiGraphToDraft(response.graph,floor,buildClearanceGrid(input));
+const nodes=Object.fromEntries(draft.nodes.map(n=>[n.id,n]));
+const report={measurement:response.measurement,message:draft.message,nodes:draft.nodes.map(n=>({...n,onObstacle:!clearSegment(draft.grid,[n.x,n.y],[n.x,n.y])})),edges:draft.edges.map(e=>({...e,path:edgeGeometry(e,nodes)}))};
+await fs.writeFile(process.argv[3]??'.artifacts/office-verification.json',JSON.stringify(report,null,2));
+console.log(JSON.stringify({message:report.message,nodes:report.nodes.map(n=>({name:n.name,x:n.x,y:n.y,onObstacle:n.onObstacle})),blocked:report.edges.filter(e=>!e.traversable).map(e=>({from:nodes[e.from].name,to:nodes[e.to].name}))},null,2));

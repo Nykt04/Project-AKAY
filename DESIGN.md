@@ -11,6 +11,7 @@ colors:
   body-ink: "#29342c"
   canvas: "#eeece4"
   focus: "#316851"
+  error: "#963d30"
 typography:
   display:
     fontFamily: "'Inria Serif', Georgia, serif"
@@ -32,6 +33,11 @@ typography:
     fontFamily: "Geist, sans-serif"
     fontSize: "12px"
     fontWeight: 500
+  mobile-input:
+    fontFamily: "Geist, sans-serif"
+    fontSize: "16px"
+    fontWeight: 400
+    lineHeight: 1.5
   distance:
     fontFamily: "'Inria Serif', Georgia, serif"
     fontSize: "26px"

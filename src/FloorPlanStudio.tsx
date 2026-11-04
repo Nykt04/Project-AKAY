@@ -1,36 +1,50 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { UploadSimple } from '@phosphor-icons/react/dist/csr/UploadSimple';
 import { Scan } from '@phosphor-icons/react/dist/csr/Scan';
 import { ArrowRight } from '@phosphor-icons/react/dist/csr/ArrowRight';
 import { Info } from '@phosphor-icons/react/dist/csr/Info';
 import { FloppyDisk } from '@phosphor-icons/react/dist/csr/FloppyDisk';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import { type Building, saveBuilding } from './buildings';
-import { activationErrors, calibratedGraph, connectionError, floorRaster, readFloorImage, reviewEdge } from './buildingEditor';
+import { activationErrors, calibratedGraph, connectionError, connectionPath, floorRaster, readFloorImage, reviewEdge } from './buildingEditor';
 import { buildClearanceGrid, clearSegment, type ScanResult } from './scan';
 import { edgeGeometry } from './geometry';
 import type { Edge, MapNode, PathKind } from './types';
 import { scanWithAi } from './aiScan';
+import { traceDraftConnections } from './tracePaths';
+import { initialSetupStage, setupReadiness, setupStages, type SetupStage } from './setupFlow';
 
 type Tool = 'select'|'seed'|'scale'|'add'|'connect'|'move'|'block'|'open';
 const categories:NonNullable<MapNode['category']>[]=['facility','entrance','room','restroom','elevator','stairs','dining','reception','lounge','conference','fitness'];
 const tools: {id:Tool;label:string;help:string}[] = [
-  {id:'select',label:'Select',help:'Select a node or a connection to inspect and edit it.'},
+  {id:'select',label:'Inspect',help:'Select a node or a connection to inspect and edit it.'},
   {id:'seed',label:'Corridor seed',help:'Local scan only: click inside a clear corridor, then scan. Only its connected walking area will be traced.'},
   {id:'scale',label:'Set scale',help:'Click two points with a known real-world distance, then enter that distance in meters.'},
-  {id:'add',label:'Add node',help:'Click on clear space to add a junction or destination. Use intermediate nodes to turn around corners.'},
-  {id:'connect',label:'Connect',help:'Select two nodes to connect them. Straight connections through detected walls are rejected.'},
-  {id:'move',label:'Move node',help:'Select a node first, then click its corrected position. Its connections will need review again.'},
+  {id:'add',label:'Add location',help:'Click on clear space to add a junction or destination. Use intermediate nodes to turn around corners.'},
+  {id:'connect',label:'Draw connection',help:'Select two locations. The path will bend around detected walls. For rooms, place the destination beside its actual entrance.'},
+  {id:'move',label:'Move location',help:'Select a node first, then click its corrected position. Its connections will need review again.'},
   {id:'block',label:'Block area',help:'Paint detected free space as a wall or obstacle. Connections crossing it must be removed or corrected.'},
   {id:'open',label:'Open doorway',help:'Correct a falsely detected wall by painting an actual doorway. This changes the scan mask, not accessibility status.'},
 ];
 
 export function FloorPlanStudio({initial,onSaved,onUse,onSaving}:{initial:Building;onSaved:(b:Building)=>void;onUse:(b:Building)=>void;onSaving:(saving:boolean)=>void}) {
+  const [stage,setStage]=useState<SetupStage>(()=>initialSetupStage(initial));
+  const stepHeading=useRef<HTMLHeadingElement>(null);
+  useGSAP(()=>{
+    const media=gsap.matchMedia();
+    media.add('(prefers-reduced-motion: no-preference)',()=>{
+      gsap.fromTo(stepHeading.current,{y:6,opacity:.8},{y:0,opacity:1,duration:.24,ease:'power2.out',clearProps:'transform,opacity'});
+    });
+    return ()=>media.revert();
+  },{dependencies:[stage],revertOnUpdate:true});
   const [draft,setDraft]=useState(initial),[floorId,setFloorId]=useState(initial.floors[0]?.id??0);
   const [tool,setTool]=useState<Tool>('select'),[selected,setSelected]=useState(''),[seed,setSeed]=useState<[number,number]>();
   const [scalePoints,setScalePoints]=useState<[number,number][]>([]),[knownDistance,setKnownDistance]=useState('');
   const [threshold,setThreshold]=useState(155),[padding,setPadding]=useState(0),[busy,setBusy]=useState(false);
   const [message,setMessage]=useState(''),[errors,setErrors]=useState<string[]>([]),[saveState,setSaveState]=useState('Saved in this browser');
   const [reviewChecked,setReviewChecked]=useState(false),[replaceChecked,setReplaceChecked]=useState(false),[showMask,setShowMask]=useState(false);
+  const [showBlocked,setShowBlocked]=useState(false);
   const [linkFrom,setLinkFrom]=useState(''),[linkTo,setLinkTo]=useState(''),[linkKind,setLinkKind]=useState<'elevator'|'stairs'>('elevator'),[linkDistance,setLinkDistance]=useState(''),[linkAccessible,setLinkAccessible]=useState(false);
   const [zoom,setZoom]=useState(1),[revision,setRevision]=useState(0);
   const [pointX,setPointX]=useState(''),[pointY,setPointY]=useState(''),[connectTo,setConnectTo]=useState('');
@@ -39,9 +53,15 @@ export function FloorPlanStudio({initial,onSaved,onUse,onSaving}:{initial:Buildi
   const history=useRef<Building[]>([]),worker=useRef<Worker|null>(null),saveTimer=useRef<ReturnType<typeof setTimeout>|null>(null),saveQueue=useRef(Promise.resolve()),latestSaved=useRef(initial.updatedAt);
   const floor=draft.floors.find(f=>f.id===floorId),nodes=draft.graph.nodes.filter(n=>n.floor===floorId),lookup=Object.fromEntries(draft.graph.nodes.map(n=>[n.id,n]));
   const edges=draft.graph.edges.filter(e=>lookup[e.from]?.floor===floorId&&lookup[e.to]?.floor===floorId),grid=draft.graph.clearanceGrids?.[floorId];
+  const misplacedNodes=nodes.filter(n=>grid&&!clearSegment(grid,[n.x,n.y],[n.x,n.y]));
   const node=draft.graph.nodes.find(n=>n.id===selected),edge=draft.graph.edges.find(e=>e.id===selected);
   const connectors=draft.graph.nodes.filter(n=>n.category==='stairs'||n.category==='elevator');
   const unreviewed=draft.graph.edges.filter(e=>e.reviewed!==true).length;
+  const readiness=setupReadiness(draft);
+  const finalIssues=useMemo(()=>stage===3?activationErrors(draft):[],[stage,draft]);
+  const changeStage=(next:SetupStage)=>{setStage(next);setTool('select');setErrors([]);setMessage('');setScalePoints([]);};
+  useEffect(()=>{stepHeading.current?.focus();},[stage]);
+  const scanRequirements=nodes.length>0&&!replaceChecked?'Confirm replacement above to rescan this floor.':scanMethod==='ai'&&!scanCode?'Enter the staff scan code, or choose Local scan to work without a key.':scanMethod==='ai'&&!aiConsent?'Confirm image sharing above to enable AI scanning.':'';
   const currentRevision=useRef(draft.updatedAt);currentRevision.current=draft.updatedAt;
   const currentDraft=useRef(draft);currentDraft.current=draft;
   useEffect(()=>{onSaving(busy||draft.updatedAt!==persistedAt);},[busy,draft.updatedAt,persistedAt,onSaving]);
@@ -76,7 +96,7 @@ export function FloorPlanStudio({initial,onSaved,onUse,onSaving}:{initial:Buildi
       const result=await readFloorImage(file,id),mask=buildClearanceGrid({...result.scan,threshold,padding,floor:id});
       commit(b=>({...b,floors:[...b.floors,result.floor],graph:{...b.graph,clearanceGrids:{...b.graph.clearanceGrids,[id]:mask}}}));
       setFloorId(id);setSeed(undefined);setSelected('');setScalePoints([]);setZoom(1);
-      setAiConsent(false);setMessage('Floor uploaded. Choose AI scanning for labeled locations, or Local scan for pathway detection without sending the image.');
+      setAiConsent(false);setMessage('Floor added. Give it a name, then continue to find paths.');
     }catch(error){setErrors([error instanceof Error?error.message:'Could not read this image.']);}finally{setBusy(false);}
   };
   const scan=async()=>{
@@ -84,7 +104,7 @@ export function FloorPlanStudio({initial,onSaved,onUse,onSaving}:{initial:Buildi
     if(scanMethod==='ai'&&(!aiConsent||!scanCode)){setErrors(['Enter the staff scan code and confirm sending this image to Google.']);return;}
     setBusy(true);setErrors([]);setMessage(scanMethod==='ai'?'AI is identifying locations and draft pathways. This can take up to a minute…':'Detecting free space and tracing candidate pathways…');
     try{
-      const raster=await floorRaster(floor);
+      const raster=await floorRaster(floor,scanMethod==='ai'?384:144);
       let result:ScanResult;
       if(scanMethod==='ai')result=await scanWithAi(floor,buildClearanceGrid({...raster,threshold,padding,floor:floor.id}),scanCode);
       else {
@@ -100,14 +120,22 @@ export function FloorPlanStudio({initial,onSaved,onUse,onSaving}:{initial:Buildi
         const retained=b.graph.nodes.filter(n=>n.floor!==floor.id),ids=new Set(retained.map(n=>n.id));
         return {...b,graph:{...b.graph,nodes:[...retained,...result.nodes],edges:[...b.graph.edges.filter(e=>ids.has(e.from)&&ids.has(e.to)),...result.edges],clearanceGrids:{...b.graph.clearanceGrids,[floor.id]:result.grid}}};
       });
-      setSelected('');setTool('select');setReplaceChecked(false);setMessage(result.message);
+      setSelected('');setTool('select');setReplaceChecked(false);setStage(2);setMessage(result.message);
     }catch(error){setErrors([error instanceof Error?error.message:'Scanning failed.']);setMessage('No generated paths were applied. Adjust the settings or draw connections manually.');}finally{setBusy(false);worker.current=null;}
   };
   const connect=(id:string)=>{
     if(!node||node.floor!==floorId){setSelected(id);return;}
     const error=connectionError(draft.graph,node.id,id,floorId);if(error){setErrors([error]);return;}
-    commit(b=>({...b,graph:{...b.graph,edges:[...b.graph.edges,{id:crypto.randomUUID(),from:node.id,to:id,distance:0,kind:'corridor',accessible:false,traversable:true,reviewed:false}]}}));
-    setSelected(id);setMessage('Connection added. Review its access condition.');
+    const path=connectionPath(draft.graph,node.id,id)!;
+    commit(b=>({...b,graph:{...b.graph,edges:[...b.graph.edges,{id:crypto.randomUUID(),from:node.id,to:id,via:path.slice(1,-1),distance:0,kind:'corridor',accessible:false,traversable:true,reviewed:false}]}}));
+    setSelected(id);setMessage('Path traced through detected open space. Check its doorway approach and access condition.');
+  };
+  const traceExisting=()=>{
+    if(!grid)return;
+    const pending=edges.filter(e=>!e.reviewed);
+    const result=traceDraftConnections(nodes,pending,grid,edges),changes=new Map(result.edges.map(e=>[e.id,e]));
+    commit(b=>({...b,graph:{...b.graph,edges:b.graph.edges.map(e=>changes.get(e.id)??e)}}));
+    setMessage(`${result.repaired} connections traced around obstacles. ${result.blocked} remain blocked. Existing obstacle corrections were preserved. Check actual doorways and room permissions before reviewing the paths.`);
   };
   const pick=(id:string)=>{if(busy)return;if(tool==='connect'&&lookup[id])connect(id);else setSelected(id);};
   useEffect(()=>{setConnectTo('');},[selected,floorId,draft.graph.nodes]);
@@ -153,59 +181,80 @@ export function FloorPlanStudio({initial,onSaved,onUse,onSaving}:{initial:Buildi
     commit(b=>({...b,graph:{...b.graph,edges:[...b.graph.edges,{id:crypto.randomUUID(),from:from.id,to:to.id,distance,kind:linkKind,accessible:linkKind==='elevator'&&linkAccessible,traversable:true,reviewed:true}]}}));setMessage('Floor connection added.');
   };
 
-  return <main className="studio" aria-label="Floor plan studio">
-    <header className="studio-heading"><div><h1>Make your building navigable.</h1><p>Upload a plan. Review its pathways. Help people find their way.</p></div><span className="save-status"><FloppyDisk size={17}/>{saveState}</span></header>
-    <div className="studio-intro"><label>Establishment name<input value={draft.name} disabled={busy} maxLength={80} onChange={e=>commit(b=>({...b,name:e.target.value}))}/></label><div className="studio-actions"><button className="secondary-button" onClick={backup}>Download backup</button><button className="primary-button" disabled={busy} onClick={activate}>Use reviewed map <ArrowRight size={18}/></button></div></div>
-    <ol className="studio-steps"><li><b>1</b>Upload floors</li><li><b>2</b>Scan & correct</li><li><b>3</b>Label & calibrate</li><li><b>4</b>Confirm access</li></ol>
+  return <main className="studio guided-studio" aria-label="Floor plan studio">
+    <header className="studio-heading"><div><p className="setup-kicker">Establishment setup</p><h1 ref={stepHeading} tabIndex={-1}>{setupStages[stage].heading}</h1><p>{setupStages[stage].help}</p></div><span className="save-status"><FloppyDisk size={17} aria-hidden="true"/>{saveState}</span></header>
+    <nav aria-label="Setup steps"><ol className="setup-navigation">{setupStages.map((step,i)=><li key={step.title}><button type="button" disabled={busy||(i>0&&!readiness.floorsReady)||(i===3&&!readiness.canReview)} aria-current={stage===i?'step':undefined} onClick={()=>changeStage(i as SetupStage)}><span aria-hidden="true">{i+1}</span>{step.title}</button></li>)}</ol></nav>
     {errors.length>0&&<div className="studio-errors" role="alert"><strong>Needs attention</strong><ul>{errors.slice(0,12).map((error,i)=><li key={i}>{error}</li>)}</ul>{errors.length>12&&<p>And {errors.length-12} more connections to correct.</p>}</div>}
-    <p className="studio-status" role="status">{busy?'Working… ':''}{message}</p>
+    {message&&<p className="studio-status" role="status">{message}</p>}
     <div className="studio-layout"><aside className="studio-controls"><fieldset disabled={busy}>
-      <h2>Your floor plans</h2>
-      <label className="upload-control"><UploadSimple size={24}/><strong>Upload a floor plan</strong><span>PNG, JPG or WebP · up to 12 MB</span><input type="file" accept="image/png,image/jpeg,image/webp" aria-label="Upload floor plan" onChange={e=>{upload(e.target.files?.[0]);e.target.value='';}}/></label>
-      <p className="field-hint">Use a clear top-down drawing. Export PDF or CAD plans as images first.</p>
-      {floor&&<><label>Current floor<select value={floorId} onChange={e=>{setFloorId(Number(e.target.value));setReviewChecked(false);setAiConsent(false);setSeed(undefined);setScalePoints([]);setSelected('');setReplaceChecked(false);setZoom(1);}}>{draft.floors.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}</select></label>
-        <label>Floor name<input value={floor.name} maxLength={60} onChange={e=>commit(b=>({...b,floors:b.floors.map(f=>f.id===floorId?{...f,name:e.target.value,short:e.target.value.slice(0,8)}:f)}))}/></label>
-        <h2>Detect pathways</h2>
+      {stage===0&&<><label>Establishment name<input value={draft.name} maxLength={80} placeholder="e.g. Riverside Community Center" onChange={e=>commit(b=>({...b,name:e.target.value}))}/></label>
+        <h2 id="studio-upload">Add floor plans</h2>
+        <label className="upload-control"><UploadSimple size={24} aria-hidden="true"/><strong>{floor?'Add another floor':'Choose a floor plan'}</strong><span>PNG, JPG or WebP · up to 12 MB</span><input type="file" accept="image/png,image/jpeg,image/webp" aria-label="Upload floor plan" onChange={e=>{upload(e.target.files?.[0]);e.target.value='';}}/></label>
+        <p className="field-hint">Use a clear top-down drawing. Export PDF or CAD plans as images first.</p>
+      </>}
+      {floor&&<label>{draft.floors.length>1?'Working on floor':'Floor'}<select value={floorId} onChange={e=>{setFloorId(Number(e.target.value));setReviewChecked(false);setAiConsent(false);setSeed(undefined);setScalePoints([]);setSelected('');setReplaceChecked(false);setZoom(1);setTool('select');}}>{draft.floors.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}</select></label>}
+      {stage===0&&floor&&<label>Floor name<input value={floor.name} maxLength={60} placeholder="e.g. Ground floor" onChange={e=>commit(b=>({...b,floors:b.floors.map(f=>f.id===floorId?{...f,name:e.target.value,short:e.target.value.slice(0,8)}:f)}))}/></label>}
+      {stage===0&&<p className="field-hint">Your draft saves in this browser as you work. You can come back to add more floors.</p>}
+      {stage===1&&floor&&<><h2 id="studio-detect" tabIndex={-1}>Detect pathways</h2>
         <label>Scanning method<select value={scanMethod} onChange={e=>{const method=e.target.value as 'local'|'ai';setScanMethod(method);if(method==='ai'&&tool==='seed')setTool('select');}}><option value="ai">AI scan · locations &amp; pathways</option><option value="local">Local scan · pathways only</option></select></label>
         {scanMethod==='ai'&&<><p className="field-hint">Gemini proposes room labels, door connections and corridor paths. AI can miss or misread details; every result stays a draft.</p><label>Staff scan code<input type="password" autoComplete="off" value={scanCode} onChange={e=>setScanCode(e.target.value)} placeholder="Code from the project owner"/></label><label className="check-label"><input type="checkbox" checked={aiConsent} onChange={e=>setAiConsent(e.target.checked)}/>Send this floor image to Google for AI analysis.</label><p className="field-hint">Google’s free tier has usage limits and may use submitted content to improve its products. Use a plan you are allowed to share. <a href="https://ai.google.dev/gemini-api/docs/pricing" target="_blank" rel="noreferrer">Free-tier details</a></p><details><summary>Set up AI scanning</summary><p className="field-hint">The project owner adds GEMINI_API_KEY and AI_SCAN_ACCESS_CODE in Vercel’s environment settings, then redeploys. The staff code is separate from the API key. Do not enter the API key here. Local scan works without setup.</p></details></>}
+        <details className="scan-options"><summary>Adjust wall detection</summary>
         <p className="field-hint">The obstacle check uses light areas between dark walls. Local scan traces these areas; AI scan proposes labeled routes against the same mask. Text, furniture and door symbols can require correction. Colored renderings are less reliable.</p>
         <label>Wall threshold <output>{threshold}</output><input type="range" min="40" max="230" value={threshold} onChange={e=>setThreshold(Number(e.target.value))}/></label>
         <label>Wall padding<select value={padding} onChange={e=>setPadding(Number(e.target.value))}><option value={0}>None — preserve narrow doors</option><option value={1}>1 scan cell</option><option value={2}>2 scan cells</option></select></label>
+        </details>
         {seed&&scanMethod==='local'&&<button className="text-button" onClick={()=>setSeed(undefined)}>Clear corridor seed</button>}
         {nodes.length>0&&<label className="check-label"><input type="checkbox" checked={replaceChecked} onChange={e=>setReplaceChecked(e.target.checked)}/>Replace this floor’s nodes, links and obstacle corrections when rescanning</label>}
-        <button className="primary-button scan-button" disabled={(nodes.length>0&&!replaceChecked)||(scanMethod==='ai'&&(!aiConsent||!scanCode))} onClick={scan}><Scan size={20}/>{busy?'Scanning…':scanMethod==='ai'?'Scan with AI':'Scan pathways'}</button>
-        <h2>Distance scale</h2><p className="field-hint">{floor.metersPerPixel?`Calibrated · ${(floor.metersPerPixel*100).toFixed(2)} m per 100 image pixels`:'Not calibrated. Image pixels are not meters.'}</p>
-        <button className="secondary-button" onClick={()=>{setTool('scale');setScalePoints([]);}}>Mark two known points</button>
-        <label>Distance between points (m)<input type="number" min="0.01" step="any" value={knownDistance} onChange={e=>setKnownDistance(e.target.value)}/></label><button className="secondary-button" disabled={scalePoints.length!==2||Number(knownDistance)<=0} onClick={calibrate}>Apply scale ({scalePoints.length}/2 points)</button>
+        <button className="primary-button scan-button" aria-describedby={scanRequirements?'scan-requirements':undefined} disabled={(nodes.length>0&&!replaceChecked)||(scanMethod==='ai'&&(!aiConsent||!scanCode))} onClick={scan}><Scan size={20}/>{busy?'Scanning…':scanMethod==='ai'?'Scan with AI':'Scan pathways'}</button>
+        {scanRequirements&&<p id="scan-requirements" className="scan-requirements">{scanRequirements}</p>}
+        {scanMethod==='local'&&<button className="secondary-button" onClick={()=>{setTool('seed');setMessage('Select clear corridor space on the plan, or enter its coordinates below the plan. Then select Scan pathways.');}}>Choose a corridor on the plan</button>}
+        <button className="text-button" onClick={()=>changeStage(2)}>Draw paths myself instead</button>
       </>}
+      {stage===2&&floor&&<><h2 id="studio-calibrate" tabIndex={-1}>Distance scale</h2><p className="field-hint">{floor.metersPerPixel?`Calibrated · ${(floor.metersPerPixel*100).toFixed(2)} m per 100 image pixels`:'Not calibrated. Image pixels are not meters.'}</p>
+        <button className="secondary-button" onClick={()=>{setTool('scale');setScalePoints([]);document.getElementById('setup-map')?.scrollIntoView({block:'start'});}}>Mark two known points</button>
+        <label>Distance between points (m)<input type="number" min="0.01" step="any" value={knownDistance} onChange={e=>setKnownDistance(e.target.value)}/></label><button className="secondary-button" disabled={scalePoints.length!==2||(!Number.isFinite(Number(knownDistance))||Number(knownDistance)<=0)} onClick={calibrate}>Apply scale ({scalePoints.length}/2 points)</button><p className="field-hint">On the map, select a location to name it. Use Add location or Draw connection if the scan missed something.</p></>}
+      {stage===3&&floor&&<><p className="field-hint">{unreviewed} connections still need review across {draft.floors.length} {draft.floors.length===1?'floor':'floors'}. Check this floor, then switch floors above.</p><section className="review-panel" id="studio-review" tabIndex={-1}><h2>Review this floor</h2><p>Check every line against the actual corridors and doors. Remove shortcuts through private rooms. Accessibility requires confirmation of real conditions, including steps, clearances and ramps.</p><label className="check-label"><input type="checkbox" disabled={busy} checked={reviewChecked} onChange={e=>setReviewChecked(e.target.checked)}/>I have checked all displayed connections on this floor.</label><div className="review-actions"><button className="secondary-button" disabled={!reviewChecked||busy} onClick={()=>commit(b=>({...b,graph:{...b.graph,edges:b.graph.edges.map(e=>edges.some(local=>local.id===e.id)?reviewEdge(e,!e.traversable?'blocked':'standard'):e)}}))}>Confirm as standard routes</button><button className="secondary-button" disabled={!reviewChecked||busy} onClick={()=>commit(b=>({...b,graph:{...b.graph,edges:b.graph.edges.map(e=>edges.some(local=>local.id===e.id)?reviewEdge(e,!e.traversable?'blocked':e.kind==='stairs'?'standard':'accessible'):e)}}))}>Confirm step-free access</button></div></section></>}
     </fieldset></aside>
-    <section className="studio-main" aria-label="Plan editor">
-      {!floor?<div className="upload-empty"><UploadSimple size={46} weight="light"/><h2>Start with your floor plan.</h2><p>Each establishment keeps its own plans, destinations and accessibility settings. Maps are saved in this browser. AI scanning sends the selected image to Google only when you confirm.</p></div>:<>
-        <div className="editor-title"><div><h2>{floor.name}</h2><p>{nodes.length} nodes · {edges.length} connections · {unreviewed} unreviewed across all floors</p></div><div className="editor-zoom"><button aria-label="Zoom editor out" disabled={zoom<=1} onClick={()=>setZoom(v=>Math.max(1,v-.25))}>−</button><span>{Math.round(zoom*100)}%</span><button aria-label="Zoom editor in" disabled={zoom>=3} onClick={()=>setZoom(v=>Math.min(3,v+.25))}>+</button></div></div>
-        <div className="editor-toolbar" role="group" aria-label="Editing tool">{tools.filter(t=>scanMethod==='local'||t.id!=='seed').map(t=><button key={t.id} disabled={busy} aria-pressed={tool===t.id} onClick={()=>setTool(t.id)}>{t.label}</button>)}<button disabled={!history.current.length||busy} onClick={()=>{const previous=history.current.pop();if(previous){setDraft({...previous,status:'draft',updatedAt:new Date().toISOString()});setRevision(revision+1);setReviewChecked(false);setErrors([]);}}}>Undo</button></div>
-        <p className="tool-help"><Info size={16}/>{tools.find(t=>t.id===tool)?.help}</p>
-        <label className="check-label"><input type="checkbox" checked={showMask} onChange={e=>setShowMask(e.target.checked)}/>Show detected obstacles (red)</label>
-        <div className="editor-scroll"><div className="editor-canvas" style={{width:`${zoom*100}%`,aspectRatio:`${floor.width}/${floor.height}`}}><img src={floor.image} alt={`Uploaded plan for ${floor.name}`} draggable={false}/>
+    <section className="studio-main" aria-label={stage===0?'Floor plan preview':'Plan editor'}>
+      {!floor?<div className="upload-empty"><UploadSimple size={46} weight="light" aria-hidden="true"/><h2>Your floor plan will appear here.</h2><p>Start with one floor. You will add paths and access details in the next steps.</p></div>:<>
+        <div className="editor-title"><div><h2>{floor.name}</h2><p>{stage===0?'Uploaded plan':nodes.length+' locations · '+edges.length+' connections'}</p></div>{stage>0&&<div className="editor-zoom"><button aria-label="Zoom editor out" disabled={zoom<=1} onClick={()=>setZoom(v=>Math.max(1,v-.25))}>−</button><span>{Math.round(zoom*100)}%</span><button aria-label="Zoom editor in" disabled={zoom>=3} onClick={()=>setZoom(v=>Math.min(3,v+.25))}>+</button></div>}</div>
+        {stage===0?<img className="setup-floor-preview" src={floor.image} alt={'Uploaded plan for '+floor.name}/>:<>
+          {stage===2&&<><div className="editor-toolbar" role="group" aria-label="Editing tool">{tools.filter(t=>['select','add','connect','move'].includes(t.id)).map(t=><button key={t.id} disabled={busy} aria-pressed={tool===t.id} onClick={()=>setTool(t.id)}>{t.label}</button>)}<button disabled={!history.current.length||busy} onClick={()=>{const previous=history.current.pop();if(previous){setDraft({...previous,status:'draft',updatedAt:new Date().toISOString()});setRevision(revision+1);setReviewChecked(false);setErrors([]);}}}>Undo</button></div>
+        <p className="tool-help"><Info size={16}/>{tools.find(t=>t.id===tool)?.help}</p><details className="setup-advanced" onToggle={event=>{if(!event.currentTarget.open&&['block','open','seed'].includes(tool))setTool('select');}}><summary>Path corrections & advanced tools</summary>
+            <div className="editor-toolbar">{tools.filter(t=>['block','open','seed'].includes(t.id)&&(t.id!=='seed'||scanMethod==='local')).map(t=><button key={t.id} disabled={busy} aria-pressed={tool===t.id} onClick={()=>setTool(t.id)}>{t.label}</button>)}</div>
+            <label className="check-label"><input type="checkbox" checked={showMask} onChange={e=>setShowMask(e.target.checked)}/>Show detected obstacles (red)</label>
+        <label className="check-label"><input type="checkbox" checked={showBlocked} onChange={e=>setShowBlocked(e.target.checked)}/>Show rejected connections ({edges.filter(e=>!e.traversable).length})</label>
+        <button className="secondary-button" disabled={busy||!grid||!edges.some(e=>!e.reviewed)} onClick={traceExisting}>Trace draft paths around walls</button>
+        </details></>}
+          {stage>=2&&<>{misplacedNodes.length>0&&<p className="field-hint">Locations on detected obstacles: {misplacedNodes.map(n=>n.name).join(', ')}. Select each location and use Move location to place it in clear entry space. Nodes are never moved across walls automatically.</p>}
+        {edges.some(e=>!e.traversable)&&<p className="field-hint" role="status">{edges.filter(e=>!e.traversable).length} connections are blocked, not usable paths. Inspect them below to move misplaced nodes or correct actual doorways. Rejected lines are hidden unless selected or enabled above.</p>}</>}
+          <div className="editor-scroll" id="setup-map" tabIndex={-1}><div className="editor-canvas" style={{width:`${zoom*100}%`,aspectRatio:`${floor.width}/${floor.height}`}}><img src={floor.image} alt={`Uploaded plan for ${floor.name}`} draggable={false}/>
           <svg viewBox={`0 0 ${floor.width} ${floor.height}`} aria-label="Editable routing graph" onPointerDown={e=>applyPoint(canvasPoint(e))} onPointerMove={e=>{if(e.buttons===1&&(tool==='open'||tool==='block')&&!busy)paint(canvasPoint(e));}}>
             {showMask&&grid&&<path className="obstacle-mask" d={grid.cells.map((free,i)=>free?'':`M${i%grid.width*floor.width/grid.width},${Math.floor(i/grid.width)*floor.height/grid.height}h${floor.width/grid.width}v${floor.height/grid.height}h-${floor.width/grid.width}z`).join('')}/>}
-            {edges.map(e=><polyline key={e.id} points={edgeGeometry(e,lookup).map(p=>p.join(',')).join(' ')} className={`editor-edge ${!e.traversable?'blocked':e.reviewed?e.accessible?'accessible':'standard':'unreviewed'} ${selected===e.id?'chosen':''}`} role="button" tabIndex={0} aria-label={`Connection ${lookup[e.from].name} to ${lookup[e.to].name}`} onPointerDown={event=>{if(['select','connect','move'].includes(tool)){event.stopPropagation();pick(e.id);}}} onKeyDown={event=>{if(event.key==='Enter'){event.preventDefault();pick(e.id);}}}/>) }
+            {edges.filter(e=>e.traversable||showBlocked||selected===e.id).map(e=><polyline key={e.id} points={edgeGeometry(e,lookup).map(p=>p.join(',')).join(' ')} className={`editor-edge ${!e.traversable?'blocked':e.reviewed?e.accessible?'accessible':'standard':'unreviewed'} ${selected===e.id?'chosen':''}`} role="button" tabIndex={0} aria-label={`Connection ${lookup[e.from].name} to ${lookup[e.to].name}`} onPointerDown={event=>{if(['select','connect','move'].includes(tool)){event.stopPropagation();pick(e.id);}}} onKeyDown={event=>{if(event.key==='Enter'){event.preventDefault();pick(e.id);}}}/>) }
             {nodes.map(n=><g key={n.id} role="button" tabIndex={0} aria-label={`Node ${n.name}`} onPointerDown={event=>{if(['select','connect','move'].includes(tool)){event.stopPropagation();pick(n.id);}}} onKeyDown={event=>{if(event.key==='Enter'){event.preventDefault();pick(n.id);}}}><circle cx={n.x} cy={n.y} r={selected===n.id?9:6} className={`editor-node ${n.facility?'facility':''} ${selected===n.id?'chosen':''}`}/>{n.facility&&<text x={n.x+10} y={n.y-10} className="editor-node-label">{n.name}</text>}</g>)}
             {seed&&scanMethod==='local'&&<circle cx={seed[0]} cy={seed[1]} r={11} className="seed-point"/>}
             {scalePoints.length===2&&<line x1={scalePoints[0][0]} y1={scalePoints[0][1]} x2={scalePoints[1][0]} y2={scalePoints[1][1]} className="scale-line"/>}
             {scalePoints.map((p,i)=><circle key={i} cx={p[0]} cy={p[1]} r={8} className="seed-point"/>)}
           </svg></div></div>
-        <details className="coordinate-editor"><summary>Edit with coordinates (keyboard alternative)</summary><p className="field-hint">Image coordinates: X from 0 to {floor.width-1}, Y from 0 to {floor.height-1}. Choose a tool above, then apply a point. Select nodes using the inspector below.</p><div className="inspector-fields"><label>X coordinate<input type="number" value={pointX} onChange={e=>setPointX(e.target.value)}/></label><label>Y coordinate<input type="number" value={pointY} onChange={e=>setPointY(e.target.value)}/></label></div><button className="secondary-button" disabled={busy||pointX===''||pointY===''||tool==='select'||tool==='connect'} onClick={()=>applyPoint([Number(pointX),Number(pointY)])}>Apply {tools.find(t=>t.id===tool)?.label} at point</button>{node&&<><label>Connect selected node to<select value={connectTo} onChange={e=>setConnectTo(e.target.value)}><option value="">Choose another node</option>{nodes.filter(n=>n.id!==node.id).map(n=><option key={n.id} value={n.id}>{n.name}</option>)}</select></label><button className="secondary-button" disabled={busy||!connectTo} onClick={()=>connect(connectTo)}>Add connection</button></>}</details>
-        <p className="editor-legend"><span>Dashed amber: unreviewed</span><span>Green: accessible</span><span>Slate: standard only</span><span>Red: blocked</span></p>
-        <div className="inspector"><fieldset disabled={busy}><label>Inspect a node or connection<select value={selected} onChange={e=>setSelected(e.target.value)}><option value="">Choose an item, or select it on the map</option><optgroup label="Nodes">{nodes.map(n=><option key={n.id} value={n.id}>{n.name}{n.facility?' · destination':''}</option>)}</optgroup><optgroup label="Connections">{edges.map(e=><option key={e.id} value={e.id}>{lookup[e.from].name} → {lookup[e.to].name}</option>)}</optgroup></select></label>
+          {(stage===2||(stage===1&&tool==='seed'))&&<><details className="coordinate-editor"><summary>Edit with coordinates (keyboard alternative)</summary><p className="field-hint">Image coordinates: X from 0 to {floor.width-1}, Y from 0 to {floor.height-1}. Choose a tool above, then apply a point. Select nodes using the inspector below.</p><div className="inspector-fields"><label>X coordinate<input type="number" value={pointX} onChange={e=>setPointX(e.target.value)}/></label><label>Y coordinate<input type="number" value={pointY} onChange={e=>setPointY(e.target.value)}/></label></div><button className="secondary-button" disabled={busy||pointX===''||pointY===''||tool==='select'||tool==='connect'} onClick={()=>applyPoint([Number(pointX),Number(pointY)])}>Apply {tools.find(t=>t.id===tool)?.label} at point</button>{node&&<><label>Connect selected node to<select value={connectTo} onChange={e=>setConnectTo(e.target.value)}><option value="">Choose another node</option>{nodes.filter(n=>n.id!==node.id).map(n=><option key={n.id} value={n.id}>{n.name}</option>)}</select></label><button className="secondary-button" disabled={busy||!connectTo} onClick={()=>connect(connectTo)}>Add connection</button></>}</details></>}
+          {stage>=2&&<><p className="editor-legend"><span>Dashed amber: unreviewed</span><span>Green: accessible</span><span>Slate: standard only</span><span>Red: blocked</span></p><div className="inspector"><fieldset disabled={busy}><label>Inspect a location or path<select value={selected} onChange={e=>setSelected(e.target.value)}><option value="">Choose an item, or select it on the map</option><optgroup label="Locations">{nodes.map(n=><option key={n.id} value={n.id}>{n.name}{n.facility?' · destination':''}</option>)}</optgroup><optgroup label="Connections">{edges.map(e=><option key={e.id} value={e.id}>{lookup[e.from].name} → {lookup[e.to].name}</option>)}</optgroup></select></label>
           {node&&<div className="inspector-fields"><label>Location name<input value={node.name} maxLength={70} onChange={e=>updateNode({name:e.target.value})}/></label><label>Location type<select value={node.category??''} onChange={e=>updateNode({category:(e.target.value||undefined) as MapNode['category']})}><option value="">Corridor junction</option>{categories.map(c=><option key={c}>{c}</option>)}</select></label><label className="check-label"><input type="checkbox" checked={!!node.facility} onChange={e=>updateNode({facility:e.target.checked,category:node.category??'facility'})}/>Show in guest destination list</label></div>}
           {edge&&<div className="inspector-fields"><label>Connection type<select value={edge.kind} onChange={e=>updateEdge(old=>({...old,kind:e.target.value as PathKind,accessible:false,reviewed:false}))}><option value="corridor">Corridor / doorway</option><option value="ramp">Ramp</option><option value="stairs">Stairs / steps</option></select></label><label>Reviewed access condition<select value={!edge.reviewed?'unknown':!edge.traversable?'blocked':edge.accessible?'accessible':'standard'} onChange={e=>updateEdge(old=>reviewEdge(old,e.target.value as 'unknown'|'accessible'|'standard'|'blocked'))}><option value="unknown">Not reviewed</option><option value="accessible" disabled={edge.kind==='stairs'}>Confirmed accessible</option><option value="standard">Standard route only</option><option value="blocked">Blocked / not a public pathway</option></select></label><p>{floor.metersPerPixel?`${edge.distance.toFixed(2)} m`:'Calibrate the plan to calculate meters.'}</p></div>}
-          {selected&&<button className="text-button danger-text" onClick={removeSelection}>Remove selected {node?'node and its connections':'connection'}</button>}
-        </fieldset></div>
-        <section className="review-panel"><h2>Review this floor</h2><p>Check every line against the actual corridors and doors. Remove shortcuts through private rooms. Accessibility requires confirmation of real conditions, including steps, clearances and ramps.</p><label className="check-label"><input type="checkbox" disabled={busy} checked={reviewChecked} onChange={e=>setReviewChecked(e.target.checked)}/>I have checked all displayed connections on this floor.</label><div className="review-actions"><button className="secondary-button" disabled={!reviewChecked||busy} onClick={()=>commit(b=>({...b,graph:{...b.graph,edges:b.graph.edges.map(e=>edges.some(local=>local.id===e.id)?reviewEdge(e,!e.traversable?'blocked':'standard'):e)}}))}>Confirm as standard routes</button><button className="secondary-button" disabled={!reviewChecked||busy} onClick={()=>commit(b=>({...b,graph:{...b.graph,edges:b.graph.edges.map(e=>edges.some(local=>local.id===e.id)?reviewEdge(e,!e.traversable?'blocked':e.kind==='stairs'?'standard':'accessible'):e)}}))}>Confirm step-free access</button></div></section>
-        {draft.floors.length>1&&<section className="review-panel"><h2>Connect floors</h2><p>Label elevator or stair nodes on each floor, then link matching landings. Different floor drawings do not need to share the same coordinates.</p><fieldset disabled={busy}><div className="inspector-fields"><label>Connector type<select value={linkKind} onChange={e=>{setLinkKind(e.target.value as 'elevator'|'stairs');setLinkAccessible(false);}}><option value="elevator">Elevator</option><option value="stairs">Stairs</option></select></label><label>From<select value={linkFrom} onChange={e=>setLinkFrom(e.target.value)}><option value="">Choose connector</option>{connectors.filter(n=>n.category===linkKind).map(n=><option key={n.id} value={n.id}>{draft.floors.find(f=>f.id===n.floor)?.name}: {n.name}</option>)}</select></label><label>To<select value={linkTo} onChange={e=>setLinkTo(e.target.value)}><option value="">Choose connector</option>{connectors.filter(n=>n.category===linkKind).map(n=><option key={n.id} value={n.id}>{draft.floors.find(f=>f.id===n.floor)?.name}: {n.name}</option>)}</select></label><label>Mapped vertical distance (m)<input type="number" min="0.01" step="any" value={linkDistance} onChange={e=>setLinkDistance(e.target.value)}/></label></div>{linkKind==='elevator'&&<label className="check-label"><input type="checkbox" checked={linkAccessible} onChange={e=>setLinkAccessible(e.target.checked)}/>Elevator access and both landings are confirmed accessible</label>}<button className="secondary-button" onClick={addFloorLink}>Add reviewed floor connection</button></fieldset>
+          {selected&&<button className="text-button danger-text" onClick={removeSelection}>Remove selected {node?'location and its connections':'connection'}</button>}
+        </fieldset></div></>}
+          {stage===3&&<>{draft.floors.length>1&&<section className="review-panel"><h2>Connect floors</h2><p>Label elevator or stair nodes on each floor, then link matching landings. Different floor drawings do not need to share the same coordinates.</p><fieldset disabled={busy}><div className="inspector-fields"><label>Connector type<select value={linkKind} onChange={e=>{setLinkKind(e.target.value as 'elevator'|'stairs');setLinkAccessible(false);}}><option value="elevator">Elevator</option><option value="stairs">Stairs</option></select></label><label>From<select value={linkFrom} onChange={e=>setLinkFrom(e.target.value)}><option value="">Choose connector</option>{connectors.filter(n=>n.category===linkKind).map(n=><option key={n.id} value={n.id}>{draft.floors.find(f=>f.id===n.floor)?.name}: {n.name}</option>)}</select></label><label>To<select value={linkTo} onChange={e=>setLinkTo(e.target.value)}><option value="">Choose connector</option>{connectors.filter(n=>n.category===linkKind).map(n=><option key={n.id} value={n.id}>{draft.floors.find(f=>f.id===n.floor)?.name}: {n.name}</option>)}</select></label><label>Mapped vertical distance (m)<input type="number" min="0.01" step="any" value={linkDistance} onChange={e=>setLinkDistance(e.target.value)}/></label></div>{linkKind==='elevator'&&<label className="check-label"><input type="checkbox" checked={linkAccessible} onChange={e=>setLinkAccessible(e.target.checked)}/>Elevator access and both landings are confirmed accessible</label>}<button className="secondary-button" onClick={addFloorLink}>Add reviewed floor connection</button></fieldset>
           <ul className="floor-link-list">{draft.graph.edges.filter(e=>lookup[e.from]?.floor!==lookup[e.to]?.floor).map(e=><li key={e.id}>{lookup[e.from]?.name} → {lookup[e.to]?.name} · {e.kind} · {e.distance} m <label>Reviewed access condition<select disabled={busy} value={!e.reviewed?'unknown':!e.traversable?'blocked':e.accessible?'accessible':'standard'} onChange={event=>{const value=event.target.value as 'unknown'|'accessible'|'standard'|'blocked';commit(b=>({...b,graph:{...b.graph,edges:b.graph.edges.map(old=>old.id===e.id?reviewEdge(old,value):old)}}));}}><option value="unknown">Not reviewed</option><option value="accessible" disabled={e.kind==='stairs'}>Confirmed accessible</option><option value="standard">Standard route only</option><option value="blocked">Blocked</option></select></label> <button className="text-button" onClick={()=>commit(b=>({...b,graph:{...b.graph,edges:b.graph.edges.filter(old=>old.id!==e.id)}}))}>Remove</button></li>)}</ul>
-        </section>}
+        </section>}</>}
+        </>}
       </>}
+      {stage===3&&<div className="setup-readiness" role="status">{finalIssues.length?<><h2>Finish these checks to open navigation.</h2><details open={finalIssues.length<=4}><summary>{finalIssues.length} {finalIssues.length===1?'item needs':'items need'} attention</summary><ul>{finalIssues.slice(0,12).map((issue,i)=><li key={i}>{issue}</li>)}</ul></details><button className="text-button" onClick={()=>changeStage(2)}>Return to map corrections</button></>:<><h2>The map is ready for visitors.</h2><p>Open navigation to try the reviewed routes. Your map stays in this browser.</p></>}</div>}
     </section></div>
+    <footer className="setup-footer"><div>{stage>0&&<button className="secondary-button" disabled={busy} onClick={()=>changeStage((stage-1) as SetupStage)}>Back</button>}<button className="text-button" onClick={backup}>Download backup</button></div><div className="setup-next">
+      {stage===0&&<><p>{!readiness.floorsReady?'Enter the place name, upload a plan and name each floor.':draft.floors.length+' floor plans added. Next, find the paths.'}</p><button className="primary-button" disabled={busy||!readiness.floorsReady} onClick={()=>changeStage(1)}>Continue to paths <ArrowRight size={18} aria-hidden="true"/></button></>}
+      {stage===1&&<><p>{readiness.pathsReady?'Paths are available. Check their positions next.':'Scan a floor plan, or choose to draw paths yourself.'}</p><button className="secondary-button" disabled={busy||!readiness.pathsReady} onClick={()=>changeStage(2)}>Continue to map check <ArrowRight size={18} aria-hidden="true"/></button></>}
+      {stage===2&&<><p>{!readiness.pathsReady?'Add paths on every floor.':!readiness.scaleReady?'Set the distance scale on every floor.':!readiness.labelsReady?'Name at least two visitor destinations.':'Next, confirm access conditions for each path.'}</p><button className="primary-button" disabled={busy||!readiness.canReview} onClick={()=>changeStage(3)}>Continue to access review <ArrowRight size={18} aria-hidden="true"/></button></>}
+      {stage===3&&<><p>{finalIssues.length?'Complete the listed checks before visitor use.':'All required checks are complete.'}</p><button className="primary-button" disabled={busy||finalIssues.length>0} onClick={activate}>Open visitor navigation <ArrowRight size={18} aria-hidden="true"/></button></>}
+    </div></footer>
   </main>;
 }

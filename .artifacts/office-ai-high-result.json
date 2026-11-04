@@ -1,0 +1,365 @@
+{
+  "graph": {
+    "nodes": [
+      {
+        "id": "j_top",
+        "name": "Corridor Junction Top",
+        "x": 480,
+        "y": 285,
+        "category": "junction",
+        "destination": false
+      },
+      {
+        "id": "j_upper",
+        "name": "Corridor Junction Upper",
+        "x": 480,
+        "y": 370,
+        "category": "junction",
+        "destination": false
+      },
+      {
+        "id": "j_mid",
+        "name": "Corridor Junction Middle",
+        "x": 480,
+        "y": 550,
+        "category": "junction",
+        "destination": false
+      },
+      {
+        "id": "j_lower",
+        "name": "Corridor Junction Lower",
+        "x": 480,
+        "y": 750,
+        "category": "junction",
+        "destination": false
+      },
+      {
+        "id": "j_bottom",
+        "name": "Corridor Junction Bottom",
+        "x": 480,
+        "y": 880,
+        "category": "junction",
+        "destination": false
+      },
+      {
+        "id": "ent_roof",
+        "name": "Roof & Rest Area Entrance",
+        "x": 480,
+        "y": 240,
+        "category": "room",
+        "destination": true
+      },
+      {
+        "id": "exit_stairs",
+        "name": "Exit Spiral Stairs",
+        "x": 720,
+        "y": 180,
+        "category": "stairs",
+        "destination": true
+      },
+      {
+        "id": "ent_manager",
+        "name": "Manager's Office Entrance",
+        "x": 560,
+        "y": 370,
+        "category": "room",
+        "destination": true
+      },
+      {
+        "id": "ent_financial",
+        "name": "Financial Department Entrance",
+        "x": 560,
+        "y": 470,
+        "category": "room",
+        "destination": true
+      },
+      {
+        "id": "ent_reception",
+        "name": "Reception Room Entrance",
+        "x": 560,
+        "y": 610,
+        "category": "reception",
+        "destination": true
+      },
+      {
+        "id": "room_storage",
+        "name": "Storage Room",
+        "x": 750,
+        "y": 740,
+        "category": "room",
+        "destination": true
+      },
+      {
+        "id": "ent_archives",
+        "name": "Archives Entrance",
+        "x": 400,
+        "y": 370,
+        "category": "room",
+        "destination": true
+      },
+      {
+        "id": "ent_logistics",
+        "name": "Logistics Service Entrance",
+        "x": 370,
+        "y": 430,
+        "category": "room",
+        "destination": true
+      },
+      {
+        "id": "ent_meeting_left",
+        "name": "Meeting Room Left Entrance",
+        "x": 410,
+        "y": 510,
+        "category": "conference",
+        "destination": true
+      },
+      {
+        "id": "ent_meeting_right",
+        "name": "Meeting Room Right Entrance",
+        "x": 410,
+        "y": 550,
+        "category": "conference",
+        "destination": true
+      },
+      {
+        "id": "ent_working",
+        "name": "Working Area Entrance",
+        "x": 410,
+        "y": 620,
+        "category": "room",
+        "destination": true
+      },
+      {
+        "id": "ent_restroom_1",
+        "name": "Restroom Entrance 1",
+        "x": 120,
+        "y": 840,
+        "category": "restroom",
+        "destination": true
+      },
+      {
+        "id": "ent_restroom_2",
+        "name": "Restroom Entrance 2",
+        "x": 220,
+        "y": 840,
+        "category": "restroom",
+        "destination": true
+      },
+      {
+        "id": "elevator_1",
+        "name": "Elevator 1",
+        "x": 680,
+        "y": 900,
+        "category": "elevator",
+        "destination": true
+      },
+      {
+        "id": "elevator_2",
+        "name": "Elevator 2",
+        "x": 760,
+        "y": 900,
+        "category": "elevator",
+        "destination": true
+      },
+      {
+        "id": "stairs_bottom",
+        "name": "Stairs",
+        "x": 880,
+        "y": 880,
+        "category": "stairs",
+        "destination": true
+      }
+    ],
+    "edges": [
+      {
+        "from": "j_top",
+        "to": "j_upper",
+        "kind": "corridor",
+        "via": []
+      },
+      {
+        "from": "j_upper",
+        "to": "j_mid",
+        "kind": "corridor",
+        "via": []
+      },
+      {
+        "from": "j_mid",
+        "to": "j_lower",
+        "kind": "corridor",
+        "via": []
+      },
+      {
+        "from": "j_lower",
+        "to": "j_bottom",
+        "kind": "corridor",
+        "via": []
+      },
+      {
+        "from": "j_top",
+        "to": "ent_roof",
+        "kind": "corridor",
+        "via": []
+      },
+      {
+        "from": "j_top",
+        "to": "exit_stairs",
+        "kind": "stairs",
+        "via": [
+          {
+            "x": 480,
+            "y": 250
+          },
+          {
+            "x": 600,
+            "y": 200
+          }
+        ]
+      },
+      {
+        "from": "j_upper",
+        "to": "ent_manager",
+        "kind": "corridor",
+        "via": []
+      },
+      {
+        "from": "j_upper",
+        "to": "ent_archives",
+        "kind": "corridor",
+        "via": []
+      },
+      {
+        "from": "j_upper",
+        "to": "ent_logistics",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 400,
+            "y": 430
+          }
+        ]
+      },
+      {
+        "from": "j_mid",
+        "to": "ent_financial",
+        "kind": "corridor",
+        "via": []
+      },
+      {
+        "from": "j_mid",
+        "to": "ent_meeting_left",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 440,
+            "y": 510
+          }
+        ]
+      },
+      {
+        "from": "j_mid",
+        "to": "ent_meeting_right",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 440,
+            "y": 550
+          }
+        ]
+      },
+      {
+        "from": "j_mid",
+        "to": "ent_working",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 440,
+            "y": 620
+          }
+        ]
+      },
+      {
+        "from": "j_lower",
+        "to": "ent_reception",
+        "kind": "corridor",
+        "via": []
+      },
+      {
+        "from": "j_bottom",
+        "to": "ent_restroom_1",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 300,
+            "y": 880
+          },
+          {
+            "x": 120,
+            "y": 880
+          }
+        ]
+      },
+      {
+        "from": "j_bottom",
+        "to": "ent_restroom_2",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 300,
+            "y": 880
+          },
+          {
+            "x": 220,
+            "y": 880
+          }
+        ]
+      },
+      {
+        "from": "j_bottom",
+        "to": "elevator_1",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 680,
+            "y": 880
+          }
+        ]
+      },
+      {
+        "from": "j_bottom",
+        "to": "elevator_2",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 760,
+            "y": 880
+          }
+        ]
+      },
+      {
+        "from": "j_bottom",
+        "to": "stairs_bottom",
+        "kind": "stairs",
+        "via": [
+          {
+            "x": 880,
+            "y": 880
+          }
+        ]
+      }
+    ],
+    "notes": [
+      "Storage Room has no visible doorway and is listed as an isolated destination with no connecting edges.",
+      "Exit area contains a spiral staircase structure connected via upper corridor."
+    ]
+  },
+  "model": "gemini-3.5-flash-lite",
+  "measurement": {
+    "status": 200,
+    "durationMs": 16344,
+    "model": "gemini-3.5-flash-lite",
+    "nodes": 21,
+    "edges": 19,
+    "thinking": "HIGH"
+  }
+}

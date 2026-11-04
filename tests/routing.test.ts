@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { hotel, facilities } from '../src/hotel.ts';
-import { findRoute, validateGraph } from '../src/routing.ts';
+import { findRoute, validateGraph, type TraceStep } from '../src/routing.ts';
+import { routeDirections } from '../src/directions.ts';
+import { applyClosures } from '../src/closures.ts';
 import { runScenarios, routeInvariant } from '../src/scenarios.ts';
 import { edgeGeometry, segmentIsWalkable } from '../src/geometry.ts';
 import type { HotelGraph } from '../src/types.ts';
@@ -66,6 +68,31 @@ test('guest rooms are terminal destinations rather than corridor shortcuts', () 
 });
 
 test('hotel graph is valid', () => assert.deepEqual(validateGraph(hotel), []));
+test('improved queued distances and zero-cost cycles retain the shortest path', () => {
+  const graph: HotelGraph = {
+    nodes: ['s','a','b','c','z'].map(id=>({id,name:id,floor:0,x:0,y:0})),
+    edges: [['s','a',10],['s','b',1],['b','a',1],['a','c',0],['c','b',0],['c','z',2]].map(([a,b,d],i)=>({
+      id:`e${i}`,from:String(a),to:String(b),distance:Number(d),kind:'corridor',accessible:true,traversable:true,
+    })),
+  };
+  for(const mode of ['shortest','accessible'] as const){
+    const route=findRoute(graph,'s','z',mode);
+    assert.equal(route.distance,3);
+    assert.deepEqual(route.nodeIds,['s','b','c','z']);
+    assert.ok(routeInvariant(graph,route));
+    assert.equal(route.visitedNodes,5);
+  }
+});
+test('each route observes changed permissions and revalidates changed geometry', () => {
+  const graph=structuredClone(hotel);
+  assert.equal(findRoute(graph,'reception','restaurant','accessible').status,'found');
+  for(const edge of graph.edges)edge.reviewed=false;
+  assert.equal(findRoute(graph,'reception','restaurant','accessible').status,'unreachable');
+  for(const edge of graph.edges)edge.reviewed=true;
+  const entry=graph.edges.find(edge=>edge.to==='suite-202')!;
+  entry.via=[[490,560]];
+  assert.equal(findRoute(graph,'lift-2','suite-202','accessible').status,'invalid');
+});
 for (const scenario of runScenarios()) test(scenario.name, () => assert.ok(scenario.passed, JSON.stringify(scenario)));
 test('every facility pair obeys distance, connectivity and accessibility invariants', () => {
   for (const a of facilities) for (const b of facilities) {
@@ -82,4 +109,67 @@ test('Dijkstra agrees with independent Floyd-Warshall oracle for all hotel nodes
     for(let k=0;k<ids.length;k++) for(let i=0;i<ids.length;i++) for(let j=0;j<ids.length;j++) matrix[i][j]=Math.min(matrix[i][j],matrix[i][k]+matrix[k][j]);
     for(let i=0;i<ids.length;i++) for(let j=0;j<ids.length;j++) {const r=findRoute(hotel,ids[i],ids[j],mode);assert.equal(r.distance,Number.isFinite(matrix[i][j])?matrix[i][j]:null,`${mode} ${ids[i]} to ${ids[j]}`);}
   }
+});
+
+test('Dijkstra trace records settled nodes in non-decreasing distance order and direction steps partition route edges', () => {
+  const trace: TraceStep[] = [];
+  const route = findRoute(hotel, 'reception', 'suite-201', 'accessible', trace);
+  assert.equal(route.status, 'found');
+  assert.equal(trace.length, route.visitedNodes);
+  assert.equal(trace[0].node, 'reception');
+  assert.equal(trace.at(-1)?.node, 'suite-201');
+  for (let i = 1; i < trace.length; i++) assert.ok(trace[i].distance >= trace[i - 1].distance);
+  const steps = routeDirections(route, hotel);
+  assert.deepEqual(steps.flatMap(s => s.edgeIds), route.edgeIds);
+});
+
+test('closing the ground-to-first elevator removes accessible upper-floor routes while leaving ground routes intact', () => {
+  const closed = applyClosures(hotel, ['lift-0--lift-1']);
+  assert.equal(findRoute(closed, 'reception', 'restaurant', 'accessible').status, 'found');
+  assert.equal(findRoute(closed, 'reception', 'conference', 'accessible').status, 'unreachable');
+  assert.equal(findRoute(closed, 'reception', 'conference', 'shortest').status, 'found');
+});
+
+test('drawn routes never overshoot a doorway and double back along the same corridor', () => {
+  const nodes = Object.fromEntries(hotel.nodes.map(node => [node.id, node]));
+  const edges = Object.fromEntries(hotel.edges.map(edge => [edge.id, edge]));
+  for (const mode of ['shortest', 'accessible'] as const) for (const a of facilities) for (const b of facilities) {
+    const route = findRoute(hotel, a.id, b.id, mode);
+    if (route.status !== 'found') continue;
+    // Build the on-screen polyline per floor, oriented in the direction of travel.
+    let points: [number, number][] = [], floor = nodes[route.nodeIds[0]].floor;
+    const check = () => {
+      const p = points.filter((pt, i) => i === 0 || pt[0] !== points[i - 1][0] || pt[1] !== points[i - 1][1]);
+      for (let i = 2; i < p.length; i++) {
+        const u = [p[i - 1][0] - p[i - 2][0], p[i - 1][1] - p[i - 2][1]], v = [p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]];
+        const cross = u[0] * v[1] - u[1] * v[0], dot = u[0] * v[0] + u[1] * v[1];
+        assert.ok(!(cross === 0 && dot < 0), `${mode} ${a.id} → ${b.id} doubles back at ${p[i - 1]}`);
+      }
+    };
+    route.edgeIds.forEach((id, i) => {
+      const from = nodes[route.nodeIds[i]], to = nodes[route.nodeIds[i + 1]];
+      if (from.floor !== to.floor) { check(); points = []; floor = to.floor; return; }
+      const geometry = edgeGeometry(edges[id], nodes);
+      points.push(...(edges[id].from === from.id ? geometry : [...geometry].reverse()));
+    });
+    check(); void floor;
+  }
+});
+
+
+test('non-finite via coordinates and floating-point drift are handled deterministically', () => {
+  const base: HotelGraph = {
+    nodes: [{ id: 'a', name: 'A', floor: 0, x: 0, y: 0 }, { id: 'b', name: 'B', floor: 0, x: 5, y: 0 }, { id: 'c', name: 'C', floor: 0, x: 10, y: 0 }],
+    edges: [
+      { id: 'ab', from: 'a', to: 'b', distance: 0.1, kind: 'corridor', accessible: true, traversable: true },
+      { id: 'bc', from: 'b', to: 'c', distance: 0.2, kind: 'corridor', accessible: true, traversable: true },
+      { id: 'ac', from: 'a', to: 'c', distance: 0.3, kind: 'corridor', accessible: true, traversable: true },
+    ],
+  };
+  const route = findRoute(base, 'a', 'c', 'shortest');
+  assert.equal(route.status, 'found');
+  assert.equal(route.distance, 0.3);
+  const badVia: HotelGraph = { ...base, edges: [{ ...base.edges[2], via: [[Number.NaN, 0]] }] };
+  assert.ok(validateGraph(badVia).some(e => e.includes('Invalid via coordinates')));
+  assert.equal(findRoute(badVia, 'a', 'c', 'shortest').status, 'invalid');
 });

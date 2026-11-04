@@ -1,7 +1,8 @@
 import { hotel, floors as sampleFloors } from './hotel';
 import type { HotelGraph } from './types';
 import type { FloorId, PathKind, RouteResult } from './types';
-export interface Direction { title: string; detail: string; floor: FloorId; distance: number; kind: PathKind | 'start' | 'arrive'; }
+/** `edgeIds` lists the route connections covered by a step, so the map can highlight that segment. */
+export interface Direction { title: string; detail: string; floor: FloorId; distance: number; kind: PathKind | 'start' | 'arrive'; edgeIds: string[]; }
 export function routeFeatures(route: RouteResult, graph: HotelGraph = hotel): string {
   if (route.status !== 'found') return route.status === 'unreachable' ? 'No suitable route' : 'Select both locations';
   if (route.distance===0) return 'Already at your destination';
@@ -14,16 +15,16 @@ export function routeDirections(route: RouteResult, graph: HotelGraph = hotel, f
   const nodeById=Object.fromEntries(graph.nodes.map(n=>[n.id,n])), edgeById=Object.fromEntries(graph.edges.map(e=>[e.id,e]));
   const floorName=(id:number)=>floors.find(f=>f.id===id)?.name??'Unknown floor';
   const first=nodeById[route.nodeIds[0]], last=nodeById[route.nodeIds.at(-1)!];
-  if(route.distance===0) return [{title:`You are already at ${last.name.toLowerCase()}.`,detail:floorName(last.floor),floor:last.floor,distance:0,kind:'arrive'}];
-  const directions: Direction[]=[{title:`From ${first.name.toLowerCase()}`,detail:`Start on the ${floorName(first.floor).toLowerCase()}.`,floor:first.floor,distance:0,kind:'start'}];
-  let corridorDistance=0;
-  const flush=(destination: string) => {if(corridorDistance){ const n=nodeById[destination];directions.push({title:`Continue to ${n.name.toLowerCase()}`,detail:`Follow the corridor for ${corridorDistance} m.`,floor:n.floor,distance:corridorDistance,kind:'corridor'});corridorDistance=0;}};
+  if(route.distance===0) return [{title:`You are already at ${last.name.toLowerCase()}.`,detail:floorName(last.floor),floor:last.floor,distance:0,kind:'arrive',edgeIds:[]}];
+  const directions: Direction[]=[{title:`From ${first.name.toLowerCase()}`,detail:`Start on the ${floorName(first.floor).toLowerCase()}.`,floor:first.floor,distance:0,kind:'start',edgeIds:[]}];
+  let corridorDistance=0, corridorEdges:string[]=[];
+  const flush=(destination: string) => {if(!corridorDistance){corridorEdges=[];return;} const n=nodeById[destination];directions.push({title:`Continue to ${n.name.toLowerCase()}`,detail:`Follow the corridor for ${corridorDistance} m.`,floor:n.floor,distance:corridorDistance,kind:'corridor',edgeIds:corridorEdges});corridorDistance=0;corridorEdges=[];};
   route.edgeIds.forEach((id,i)=>{
     const edge=edgeById[id], from=nodeById[route.nodeIds[i]], to=nodeById[route.nodeIds[i+1]];
-    if(edge.kind==='corridor'){corridorDistance=Math.round((corridorDistance+edge.distance)*100)/100;return;}
+    if(edge.kind==='corridor'){corridorDistance=Math.round((corridorDistance+edge.distance)*100)/100;corridorEdges.push(id);return;}
     flush(from.id);
     const crossFloor=from.floor!==to.floor;
-    directions.push({title:edge.kind==='elevator'?`Take the elevator to the ${floorName(to.floor).toLowerCase()}`:edge.kind==='stairs'?crossFloor?`Take the stairs to the ${floorName(to.floor).toLowerCase()}`:'Use the short flight of steps':'Take the ramp',detail:edge.kind==='elevator'?`${edge.distance} m of mapped vertical travel.`:`${edge.distance} m · ${crossFloor?`${floorName(from.floor)} to ${floorName(to.floor)}`:floorName(to.floor)}`,floor:to.floor,distance:edge.distance,kind:edge.kind});
+    directions.push({title:edge.kind==='elevator'?`Take the elevator to the ${floorName(to.floor).toLowerCase()}`:edge.kind==='stairs'?crossFloor?`Take the stairs to the ${floorName(to.floor).toLowerCase()}`:'Use the short flight of steps':'Take the ramp',detail:edge.kind==='elevator'?`${edge.distance} m of mapped vertical travel.`:`${edge.distance} m · ${crossFloor?`${floorName(from.floor)} to ${floorName(to.floor)}`:floorName(to.floor)}`,floor:to.floor,distance:edge.distance,kind:edge.kind,edgeIds:[id]});
   });
   flush(last.id);
   const final=directions.at(-1)!;

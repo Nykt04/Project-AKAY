@@ -1,0 +1,733 @@
+{
+  "measurement": {
+    "status": 200,
+    "durationMs": 16344,
+    "model": "gemini-3.5-flash-lite",
+    "nodes": 21,
+    "edges": 19,
+    "thinking": "HIGH"
+  },
+  "message": "AI proposed 21 locations. 7 candidate connections follow detected open space; 0 were traced around obstacles. 12 connections could not be traced safely and remain blocked. Move misplaced nodes or map actual doorways before retrying. All connections need review; distances need calibration. AI notes (unverified): Storage Room has no visible doorway and is listed as an isolated destination with no connecting edges. Exit area contains a spiral staircase structure connected via upper corridor.",
+  "nodes": [
+    {
+      "id": "f0-ai-j_top",
+      "name": "Corridor Junction Top",
+      "floor": 0,
+      "x": 312,
+      "y": 220.59,
+      "facility": false,
+      "onObstacle": false
+    },
+    {
+      "id": "f0-ai-j_upper",
+      "name": "Corridor Junction Upper",
+      "floor": 0,
+      "x": 312,
+      "y": 286.38,
+      "facility": false,
+      "onObstacle": false
+    },
+    {
+      "id": "f0-ai-j_mid",
+      "name": "Corridor Junction Middle",
+      "floor": 0,
+      "x": 312,
+      "y": 425.7,
+      "facility": false,
+      "onObstacle": false
+    },
+    {
+      "id": "f0-ai-j_lower",
+      "name": "Corridor Junction Lower",
+      "floor": 0,
+      "x": 312,
+      "y": 580.5,
+      "facility": false,
+      "onObstacle": false
+    },
+    {
+      "id": "f0-ai-j_bottom",
+      "name": "Corridor Junction Bottom",
+      "floor": 0,
+      "x": 312,
+      "y": 681.12,
+      "facility": false,
+      "onObstacle": false
+    },
+    {
+      "id": "f0-ai-ent_roof",
+      "name": "Roof & Rest Area Entrance",
+      "floor": 0,
+      "x": 312,
+      "y": 185.76,
+      "category": "room",
+      "facility": true,
+      "onObstacle": false
+    },
+    {
+      "id": "f0-ai-exit_stairs",
+      "name": "Exit Spiral Stairs",
+      "floor": 0,
+      "x": 468,
+      "y": 139.32,
+      "category": "stairs",
+      "facility": true,
+      "onObstacle": false
+    },
+    {
+      "id": "f0-ai-ent_manager",
+      "name": "Manager's Office Entrance",
+      "floor": 0,
+      "x": 364,
+      "y": 286.38,
+      "category": "room",
+      "facility": true,
+      "onObstacle": false
+    },
+    {
+      "id": "f0-ai-ent_financial",
+      "name": "Financial Department Entrance",
+      "floor": 0,
+      "x": 364,
+      "y": 363.78,
+      "category": "room",
+      "facility": true,
+      "onObstacle": false
+    },
+    {
+      "id": "f0-ai-ent_reception",
+      "name": "Reception Room Entrance",
+      "floor": 0,
+      "x": 364,
+      "y": 472.14,
+      "category": "reception",
+      "facility": true,
+      "onObstacle": false
+    },
+    {
+      "id": "f0-ai-room_storage",
+      "name": "Storage Room",
+      "floor": 0,
+      "x": 487.5,
+      "y": 572.76,
+      "category": "room",
+      "facility": true,
+      "onObstacle": true
+    },
+    {
+      "id": "f0-ai-ent_archives",
+      "name": "Archives Entrance",
+      "floor": 0,
+      "x": 260,
+      "y": 286.38,
+      "category": "room",
+      "facility": true,
+      "onObstacle": false
+    },
+    {
+      "id": "f0-ai-ent_logistics",
+      "name": "Logistics Service Entrance",
+      "floor": 0,
+      "x": 240.5,
+      "y": 332.82,
+      "category": "room",
+      "facility": true,
+      "onObstacle": true
+    },
+    {
+      "id": "f0-ai-ent_meeting_left",
+      "name": "Meeting Room Left Entrance",
+      "floor": 0,
+      "x": 266.5,
+      "y": 394.74,
+      "category": "conference",
+      "facility": true,
+      "onObstacle": false
+    },
+    {
+      "id": "f0-ai-ent_meeting_right",
+      "name": "Meeting Room Right Entrance",
+      "floor": 0,
+      "x": 266.5,
+      "y": 425.7,
+      "category": "conference",
+      "facility": true,
+      "onObstacle": false
+    },
+    {
+      "id": "f0-ai-ent_working",
+      "name": "Working Area Entrance",
+      "floor": 0,
+      "x": 266.5,
+      "y": 479.88,
+      "category": "room",
+      "facility": true,
+      "onObstacle": false
+    },
+    {
+      "id": "f0-ai-ent_restroom_1",
+      "name": "Restroom Entrance 1",
+      "floor": 0,
+      "x": 78,
+      "y": 650.16,
+      "category": "restroom",
+      "facility": true,
+      "onObstacle": true
+    },
+    {
+      "id": "f0-ai-ent_restroom_2",
+      "name": "Restroom Entrance 2",
+      "floor": 0,
+      "x": 143,
+      "y": 650.16,
+      "category": "restroom",
+      "facility": true,
+      "onObstacle": false
+    },
+    {
+      "id": "f0-ai-elevator_1",
+      "name": "Elevator 1",
+      "floor": 0,
+      "x": 442,
+      "y": 696.6,
+      "category": "elevator",
+      "facility": true,
+      "onObstacle": false
+    },
+    {
+      "id": "f0-ai-elevator_2",
+      "name": "Elevator 2",
+      "floor": 0,
+      "x": 494,
+      "y": 696.6,
+      "category": "elevator",
+      "facility": true,
+      "onObstacle": false
+    },
+    {
+      "id": "f0-ai-stairs_bottom",
+      "name": "Stairs",
+      "floor": 0,
+      "x": 572,
+      "y": 681.12,
+      "category": "stairs",
+      "facility": true,
+      "onObstacle": true
+    }
+  ],
+  "edges": [
+    {
+      "id": "f0-ai-e0",
+      "from": "f0-ai-j_top",
+      "to": "f0-ai-j_upper",
+      "kind": "corridor",
+      "via": [],
+      "distance": 65.78999999999999,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": true,
+      "path": [
+        [
+          312,
+          220.59
+        ],
+        [
+          312,
+          286.38
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e1",
+      "from": "f0-ai-j_upper",
+      "to": "f0-ai-j_mid",
+      "kind": "corridor",
+      "via": [],
+      "distance": 139.32,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": true,
+      "path": [
+        [
+          312,
+          286.38
+        ],
+        [
+          312,
+          425.7
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e2",
+      "from": "f0-ai-j_mid",
+      "to": "f0-ai-j_lower",
+      "kind": "corridor",
+      "via": [],
+      "distance": 154.8,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": true,
+      "path": [
+        [
+          312,
+          425.7
+        ],
+        [
+          312,
+          580.5
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e3",
+      "from": "f0-ai-j_lower",
+      "to": "f0-ai-j_bottom",
+      "kind": "corridor",
+      "via": [],
+      "distance": 100.62,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": true,
+      "path": [
+        [
+          312,
+          580.5
+        ],
+        [
+          312,
+          681.12
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e4",
+      "from": "f0-ai-j_top",
+      "to": "f0-ai-ent_roof",
+      "kind": "corridor",
+      "via": [],
+      "distance": 34.83000000000001,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": false,
+      "path": [
+        [
+          312,
+          220.59
+        ],
+        [
+          312,
+          185.76
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e5",
+      "from": "f0-ai-j_top",
+      "to": "f0-ai-exit_stairs",
+      "kind": "stairs",
+      "via": [
+        [
+          312,
+          193.5
+        ],
+        [
+          390,
+          154.8
+        ]
+      ],
+      "distance": 193.68415802681295,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": false,
+      "path": [
+        [
+          312,
+          220.59
+        ],
+        [
+          312,
+          193.5
+        ],
+        [
+          390,
+          154.8
+        ],
+        [
+          468,
+          139.32
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e6",
+      "from": "f0-ai-j_upper",
+      "to": "f0-ai-ent_manager",
+      "kind": "corridor",
+      "via": [],
+      "distance": 52,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": true,
+      "path": [
+        [
+          312,
+          286.38
+        ],
+        [
+          364,
+          286.38
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e7",
+      "from": "f0-ai-j_upper",
+      "to": "f0-ai-ent_archives",
+      "kind": "corridor",
+      "via": [],
+      "distance": 52,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": false,
+      "path": [
+        [
+          312,
+          286.38
+        ],
+        [
+          260,
+          286.38
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e8",
+      "from": "f0-ai-j_upper",
+      "to": "f0-ai-ent_logistics",
+      "kind": "corridor",
+      "via": [
+        [
+          260,
+          332.82
+        ]
+      ],
+      "distance": 89.21853125245826,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": false,
+      "path": [
+        [
+          312,
+          286.38
+        ],
+        [
+          260,
+          332.82
+        ],
+        [
+          240.5,
+          332.82
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e9",
+      "from": "f0-ai-j_mid",
+      "to": "f0-ai-ent_financial",
+      "kind": "corridor",
+      "via": [],
+      "distance": 80.85843431578428,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": true,
+      "path": [
+        [
+          312,
+          425.7
+        ],
+        [
+          364,
+          363.78
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e10",
+      "from": "f0-ai-j_mid",
+      "to": "f0-ai-ent_meeting_left",
+      "kind": "corridor",
+      "via": [
+        [
+          286,
+          394.74
+        ]
+      ],
+      "distance": 59.929217157892126,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": false,
+      "path": [
+        [
+          312,
+          425.7
+        ],
+        [
+          286,
+          394.74
+        ],
+        [
+          266.5,
+          394.74
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e11",
+      "from": "f0-ai-j_mid",
+      "to": "f0-ai-ent_meeting_right",
+      "kind": "corridor",
+      "via": [
+        [
+          286,
+          425.7
+        ]
+      ],
+      "distance": 45.5,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": false,
+      "path": [
+        [
+          312,
+          425.7
+        ],
+        [
+          286,
+          425.7
+        ],
+        [
+          266.5,
+          425.7
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e12",
+      "from": "f0-ai-j_mid",
+      "to": "f0-ai-ent_working",
+      "kind": "corridor",
+      "via": [
+        [
+          286,
+          479.88
+        ]
+      ],
+      "distance": 79.59552728781071,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": false,
+      "path": [
+        [
+          312,
+          425.7
+        ],
+        [
+          286,
+          479.88
+        ],
+        [
+          266.5,
+          479.88
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e13",
+      "from": "f0-ai-j_lower",
+      "to": "f0-ai-ent_reception",
+      "kind": "corridor",
+      "via": [],
+      "distance": 120.19105457562141,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": true,
+      "path": [
+        [
+          312,
+          580.5
+        ],
+        [
+          364,
+          472.14
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e14",
+      "from": "f0-ai-j_bottom",
+      "to": "f0-ai-ent_restroom_1",
+      "kind": "corridor",
+      "via": [
+        [
+          195,
+          681.12
+        ],
+        [
+          78,
+          681.12
+        ]
+      ],
+      "distance": 264.96000000000004,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": false,
+      "path": [
+        [
+          312,
+          681.12
+        ],
+        [
+          195,
+          681.12
+        ],
+        [
+          78,
+          681.12
+        ],
+        [
+          78,
+          650.16
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e15",
+      "from": "f0-ai-j_bottom",
+      "to": "f0-ai-ent_restroom_2",
+      "kind": "corridor",
+      "via": [
+        [
+          195,
+          681.12
+        ],
+        [
+          143,
+          681.12
+        ]
+      ],
+      "distance": 199.96000000000004,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": false,
+      "path": [
+        [
+          312,
+          681.12
+        ],
+        [
+          195,
+          681.12
+        ],
+        [
+          143,
+          681.12
+        ],
+        [
+          143,
+          650.16
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e16",
+      "from": "f0-ai-j_bottom",
+      "to": "f0-ai-elevator_1",
+      "kind": "corridor",
+      "via": [
+        [
+          442,
+          681.12
+        ]
+      ],
+      "distance": 145.48000000000002,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": false,
+      "path": [
+        [
+          312,
+          681.12
+        ],
+        [
+          442,
+          681.12
+        ],
+        [
+          442,
+          696.6
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e17",
+      "from": "f0-ai-j_bottom",
+      "to": "f0-ai-elevator_2",
+      "kind": "corridor",
+      "via": [
+        [
+          494,
+          681.12
+        ]
+      ],
+      "distance": 197.48000000000002,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": false,
+      "path": [
+        [
+          312,
+          681.12
+        ],
+        [
+          494,
+          681.12
+        ],
+        [
+          494,
+          696.6
+        ]
+      ]
+    },
+    {
+      "id": "f0-ai-e18",
+      "from": "f0-ai-j_bottom",
+      "to": "f0-ai-stairs_bottom",
+      "kind": "stairs",
+      "via": [
+        [
+          572,
+          681.12
+        ]
+      ],
+      "distance": 260,
+      "accessible": false,
+      "reviewed": false,
+      "traversable": false,
+      "path": [
+        [
+          312,
+          681.12
+        ],
+        [
+          572,
+          681.12
+        ],
+        [
+          572,
+          681.12
+        ]
+      ]
+    }
+  ]
+}

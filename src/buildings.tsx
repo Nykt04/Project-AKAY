@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 import { hotel, floors as sampleFloors } from './hotel';
 import type { HotelGraph, MapNode, Edge } from './types';
 
@@ -11,7 +11,7 @@ export interface Building {
   status: 'draft' | 'ready'; updatedAt: string; sample?: boolean;
 }
 export const sampleBuilding: Building = {
-  id: 'linden-sample', name: 'Linden Hotel', sample: true, status: 'ready', updatedAt: '', graph: hotel,
+  id: 'linden-sample', name: 'Civic Center', sample: true, status: 'ready', updatedAt: '', graph: hotel,
   floors: sampleFloors.map(f => ({ ...f, image: `/assets/floor-${f.id}.png`, width: 1000, height: 760 })),
 };
 export function buildingData(building: Building) {
@@ -24,7 +24,10 @@ export function buildingData(building: Building) {
   };
 }
 export const BuildingContext = createContext(sampleBuilding);
-export const useBuilding = () => buildingData(useContext(BuildingContext));
+export const useBuilding = () => {
+  const building = useContext(BuildingContext);
+  return useMemo(() => buildingData(building), [building]);
+};
 
 const openDatabase = () => new Promise<IDBDatabase>((resolve,reject) => {
   const request = indexedDB.open('indoor-wayfinding',1);

@@ -1,0 +1,167 @@
+/* Usability refinements for Modern Wayfinding */
+
+.workspace-tools {
+  position: relative;
+  flex-shrink: 0;
+}
+.workspace-tools summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 6px 12px;
+  color: var(--ink-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  box-shadow: var(--shadow-xs);
+  list-style: none;
+  transition: all 0.15s ease;
+}
+.workspace-tools summary::-webkit-details-marker {
+  display: none;
+}
+.workspace-tools summary:focus-visible, .studio-steps a:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+.workspace-tools[open] summary {
+  background: var(--bg-subtle);
+}
+.workspace-tools .workspace-actions {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  min-width: 220px;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  gap: 4px;
+}
+.workspace-tools .workspace-actions button {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 36px;
+}
+
+#floor-map, #route-directions, .studio-controls h2, #studio-review {
+  scroll-margin-top: 24px;
+}
+
+.location-trigger[aria-invalid=true] {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+}
+
+.map-floor-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  color: var(--ink-secondary);
+  font-size: 12px;
+}
+
+.studio-steps li {
+  flex: 1;
+  min-width: 140px;
+  align-items: flex-start;
+}
+.studio-steps a {
+  color: inherit;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  text-decoration: none;
+  padding-block: 4px;
+}
+.studio-steps a:hover strong {
+  color: var(--green);
+}
+.studio-steps b {
+  flex-shrink: 0;
+}
+.studio-steps strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.studio-steps small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.studio-steps .is-complete b {
+  background: var(--green);
+  color: #ffffff;
+  border-color: var(--green);
+}
+
+.studio-next-step {
+  margin: 16px 0;
+  padding: 14px 16px;
+  background: var(--green-light);
+  border: 1px solid var(--green-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: var(--green);
+}
+.studio-next-step svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.studio-next-step p {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+}
+.studio-next-step strong {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.scan-options {
+  border-block: 1px solid var(--line);
+  padding-block: 10px;
+}
+.scan-options summary {
+  cursor: pointer;
+  min-height: 32px;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 500;
+}
+.scan-options[open] > :not(summary) {
+  margin-top: 10px;
+}
+.scan-requirements {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+@media(prefers-reduced-motion:reduce) {
+  .route-jump-links a, .workspace-tools summary {
+    transition: none !important;
+  }
+}

@@ -3,19 +3,31 @@ import type { Edge, HotelGraph } from './types';
 import { edgeGeometry } from './geometry';
 import { validateGraph } from './routing';
 import type { ScanInput } from './scan';
-import { clearSegment } from './scan';
+import { traceDraftConnections } from './tracePaths';
+
+export function connectionPath(graph:HotelGraph,fromId:string,toId:string):[number,number][]|null {
+  const from=graph.nodes.find(n=>n.id===fromId),to=graph.nodes.find(n=>n.id===toId);
+  if(!from||!to||from.floor!==to.floor)return null;
+  const grid=graph.clearanceGrids?.[from.floor];
+  if(!grid)return null;
+  const nodes=graph.nodes.filter(n=>n.floor===from.floor),ids=new Set(nodes.map(n=>n.id));
+  const candidate:Edge={id:'candidate',from:fromId,to:toId,distance:0,kind:'corridor',accessible:false,traversable:true,reviewed:false};
+  const topology=[...graph.edges.filter(e=>ids.has(e.from)&&ids.has(e.to)),candidate];
+  const traced=traceDraftConnections(nodes,[candidate],grid,topology).edges[0];
+  return traced.traversable?edgeGeometry(traced,Object.fromEntries(nodes.map(n=>[n.id,n]))):null;
+}
 
 export function connectionError(graph:HotelGraph,fromId:string,toId:string,floorId:number):string|null {
   const from=graph.nodes.find(n=>n.id===fromId),to=graph.nodes.find(n=>n.id===toId);
   if(!from||!to||from.floor!==floorId||to.floor!==floorId)return 'Select two existing nodes on this floor. Use Connect floors for elevator or stair transitions.';
   if(from.id===to.id)return 'Choose two different nodes.';
   if(graph.edges.some(e=>(e.from===from.id&&e.to===to.id)||(e.from===to.id&&e.to===from.id)))return 'These nodes already have a connection. Inspect it to change its access condition.';
-  const grid=graph.clearanceGrids?.[floorId];
-  if(!grid||!clearSegment(grid,[from.x,from.y],[to.x,to.y]))return 'This connection crosses a detected wall. Add a turning point, or correct an actual doorway using Open doorway.';
+  if([from,to].some(n=>(n.category==='room'||(n.facility&&!['entrance','stairs','elevator'].includes(n.category??'')))&&graph.edges.some(e=>e.from===n.id||e.to===n.id)))return 'Connect each room entrance to one corridor junction. Remove its old connection before replacing it; rooms cannot be shortcuts.';
+  if(!connectionPath(graph,fromId,toId))return 'No path through detected open space connects these locations. Check their positions and actual doorways; walls will not be crossed.';
   return null;
 }
 
-export const freshBuilding = (): Building => ({id:crypto.randomUUID(),name:'New establishment',floors:[],graph:{nodes:[],edges:[],clearanceGrids:{}},status:'draft',updatedAt:new Date().toISOString()});
+export const freshBuilding = (): Building => ({id:crypto.randomUUID(),name:'',floors:[],graph:{nodes:[],edges:[],clearanceGrids:{}},status:'draft',updatedAt:new Date().toISOString()});
 export function calibratedGraph(graph: HotelGraph, floors: BuildingFloor[]): HotelGraph {
   const nodes=Object.fromEntries(graph.nodes.map(n=>[n.id,n]));
   return {...graph,edges:graph.edges.map(edge=>{
@@ -64,8 +76,8 @@ export async function readFloorImage(file: File, id: number): Promise<{floor:Bui
     return {floor:{id,name:`Floor ${id+1}`,short:String(id+1),description:'Uploaded floor plan',image:canvas.toDataURL('image/png'),width,height},scan:rasterData(ctx,width,height)};
   }finally{URL.revokeObjectURL(url);}
 }
-export function rasterData(ctx: CanvasRenderingContext2D,width:number,height:number) {
-  const ratio=Math.min(1,144/Math.max(width,height)),w=Math.max(5,Math.round(width*ratio)),h=Math.max(5,Math.round(height*ratio));
+export function rasterData(ctx: CanvasRenderingContext2D,width:number,height:number,maxDimension=144) {
+  const ratio=Math.min(1,maxDimension/Math.max(width,height)),w=Math.max(5,Math.round(width*ratio)),h=Math.max(5,Math.round(height*ratio));
   const pixels=ctx.getImageData(0,0,width,height).data,gray:number[]=[];
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){
     let darkest=255;
@@ -76,9 +88,9 @@ export function rasterData(ctx: CanvasRenderingContext2D,width:number,height:num
   }
   return {width:w,height:h,gray,imageWidth:width,imageHeight:height};
 }
-export async function floorRaster(floor:BuildingFloor){
+export async function floorRaster(floor:BuildingFloor,maxDimension=144){
   const image=new Image();image.src=floor.image;await image.decode();
   const canvas=document.createElement('canvas');canvas.width=floor.width;canvas.height=floor.height;
   const ctx=canvas.getContext('2d')!;ctx.drawImage(image,0,0);
-  return rasterData(ctx,floor.width,floor.height);
+  return rasterData(ctx,floor.width,floor.height,maxDimension);
 }

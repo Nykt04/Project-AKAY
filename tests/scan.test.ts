@@ -60,11 +60,39 @@ test('a corridor seed chooses only its connected region',()=>{
   const result=scanFloor({...input,seed:[125,265]});
   assert.ok(result.nodes.every(n=>n.x<250&&n.y>220));
 });
+test('repeated scans do not reuse neighbors or permissions from an earlier mask',()=>{
+  const input=corridor(),original=scanFloor(input);
+  const split={...input,gray:[...input.gray],seed:[95,95] as [number,number]};
+  for(let x=33;x<=39;x++)split.gray[20*input.width+x]=0;
+  const revised=scanFloor(split);
+  assert.ok(original.nodes.some(n=>n.y>280));
+  assert.ok(revised.nodes.every(n=>n.y<200));
+  assert.ok(revised.edges.every(e=>e.reviewed===false&&e.accessible===false));
+  assert.deepEqual(scanFloor(input),original);
+});
 test('cell coverage rejects thin walls and diagonal corner cutting',()=>{
   const grid:ClearanceGrid={width:3,height:3,imageWidth:30,imageHeight:30,cells:[1,0,1,1,0,1,1,0,1]};
   assert.equal(clearSegment(grid,[5,5],[25,5]),false);
   assert.equal(clearSegment({...grid,cells:[1,0,1,0,1,1,1,1,1]},[5,5],[15,15]),false);
   assert.equal(clearSegment(grid,[5,5],[5,25]),true);
+});
+test('wall boundaries and corner endpoints are blocked in both directions',()=>{
+  const grid:ClearanceGrid={width:3,height:3,imageWidth:30,imageHeight:30,cells:[1,0,1,1,0,1,1,1,1]};
+  for(const [a,b] of [[[10,5],[10,25]],[[10,20],[25,25]],[[5,20],[25,20]]] as [number[],number[]][]){
+    assert.equal(clearSegment(grid,a as [number,number],b as [number,number]),false);
+    assert.equal(clearSegment(grid,b as [number,number],a as [number,number]),false);
+  }
+  assert.equal(clearSegment(grid,[9.9,5],[9.9,25]),true);
+  assert.equal(clearSegment({...grid,imageWidth:0},[5,5],[5,25]),false);
+  assert.equal(clearSegment(grid,[NaN,5],[5,25]),false);
+});
+test('uploaded graphs fail closed when a floor mask or explicit review is missing',()=>{
+  const b=draftFromScan(),a=b.graph.nodes[0].id,z=b.graph.nodes[1].id;
+  b.graph.edges=b.graph.edges.map(e=>({...e,reviewed:undefined}));
+  assert.equal(findRoute(b.graph,a,z,'shortest').status,'unreachable');
+  b.graph.clearanceGrids={};
+  assert.equal(findRoute(b.graph,a,z,'shortest').status,'invalid');
+  assert.equal(findRoute(b.graph,a,a,'shortest').status,'invalid');
 });
 test('unreviewed paths cannot be used by either routing mode',()=>{
   const b=draftFromScan();b.graph.edges=b.graph.edges.map(e=>({...e,reviewed:false}));
@@ -83,9 +111,23 @@ test('scale uses full polyline length, and preserves entered vertical distance',
   assert.equal(result.edges[0].distance,14);assert.equal(result.edges[1].distance,7);
 });
 test('uploaded floor transitions may have different drawing coordinates',()=>{
-  const graph:HotelGraph={nodes:[{id:'a',name:'Lift A',floor:4,x:5,y:5,category:'elevator'},{id:'b',name:'Lift B',floor:7,x:75,y:75,category:'elevator'}],edges:[{id:'ab',from:'a',to:'b',distance:9,kind:'elevator',accessible:true,traversable:true,reviewed:true}],clearanceGrids:{}};
+  const grid={width:10,height:10,imageWidth:100,imageHeight:100,cells:Array(100).fill(1)};
+  const graph:HotelGraph={nodes:[{id:'a',name:'Lift A',floor:4,x:5,y:5,category:'elevator'},{id:'b',name:'Lift B',floor:7,x:75,y:75,category:'elevator'}],edges:[{id:'ab',from:'a',to:'b',distance:9,kind:'elevator',accessible:true,traversable:true,reviewed:true}],clearanceGrids:{4:grid,7:grid}};
   assert.deepEqual(validateGraph(graph),[]);assert.equal(findRoute(graph,'a','b','accessible').distance,9);
   graph.edges[0].kind='corridor';assert.ok(validateGraph(graph).some(e=>e.includes('floor transition')));
+});
+test('floor transitions cannot land on an obstacle',()=>{
+  const grid={width:10,height:10,imageWidth:100,imageHeight:100,cells:Array(100).fill(1)};
+  const blocked={...grid,cells:[...grid.cells]};blocked.cells[77]=0;
+  const graph:HotelGraph={nodes:[{id:'a',name:'Lift A',floor:4,x:5,y:5,category:'elevator'},{id:'b',name:'Lift B',floor:7,x:75,y:75,category:'elevator'}],edges:[{id:'ab',from:'a',to:'b',distance:9,kind:'elevator',accessible:true,traversable:true,reviewed:true}],clearanceGrids:{4:grid,7:blocked}};
+  assert.ok(validateGraph(graph).length);
+  assert.equal(findRoute(graph,'a','b','accessible').status,'invalid');
+});
+test('a reviewed private room is a destination, never an intermediate shortcut',()=>{
+  const graph:HotelGraph={nodes:[{id:'a',name:'Hall A',floor:0,x:5,y:5},{id:'r',name:'Office',floor:0,x:15,y:5,category:'room'},{id:'b',name:'Hall B',floor:0,x:25,y:5}],edges:[{id:'ar',from:'a',to:'r',distance:10,kind:'corridor',accessible:true,traversable:true},{id:'rb',from:'r',to:'b',distance:10,kind:'corridor',accessible:true,traversable:true}]};
+  assert.equal(findRoute(graph,'a','r','shortest').status,'found');
+  assert.equal(findRoute(graph,'r','b','shortest').status,'found');
+  assert.equal(findRoute(graph,'a','b','shortest').status,'unreachable');
 });
 test('review never makes stairs accessible and blocked paths are excluded',()=>{
   const b=draftFromScan(),edge={...b.graph.edges[0],kind:'stairs' as const};

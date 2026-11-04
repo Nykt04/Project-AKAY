@@ -46,6 +46,23 @@ test('malformed AI JSON never becomes a success result',async()=>{
   const response=()=>new Response(JSON.stringify({candidates:[{finishReason:'STOP',content:{parts:[{text:'not json'}]}}]}));
   assert.equal((await createScanService({env,fetchImpl:async()=>response()})(request)).status,502);
 });
+
+test('Flash-Lite requests use a compact schema while oversized responses remain rejected',async()=>{
+  let sent;
+  const scan=createScanService({env:{...env,GEMINI_MODEL:'gemini-3.5-flash-lite'},fetchImpl:async(url,options)=>{
+    sent={url,body:JSON.parse(options.body)};
+    const oversized={...graph,nodes:Array(151).fill({id:'a'})};
+    return new Response(JSON.stringify({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(oversized)}]}}]}));
+  }});
+  const result=await scan(request);
+  assert.equal(result.status,502);
+  assert.match(result.body.error,/invalid graph/);
+  assert.match(sent.url,/models\/gemini-3\.5-flash-lite:generateContent$/);
+  const schema=sent.body.generationConfig.responseJsonSchema;
+  assert.deepEqual(schema.required,['nodes','edges','notes']);
+  assert.equal(schema.properties.nodes.items.properties.x.type,'number');
+  assert.ok(!/"(maxItems|minimum|maximum)"/.test(JSON.stringify(schema)));
+});
 test('HTTP adapter parses JSON and returns a no-store configuration error without a key',async()=>{
   const req=Readable.from([JSON.stringify(request.body)]);req.method='POST';req.headers={'x-scan-code':request.accessCode};
   let status,body;const headers={};const res={setHeader:(key,value)=>headers[key]=value,set statusCode(value){status=value;},end:value=>body=JSON.parse(value)};

@@ -1,0 +1,18 @@
+{
+  "model": "gemini-3.5-flash-lite",
+  "locations": 8,
+  "connections": 7,
+  "blockedConnections": 4,
+  "unreviewedConnections": 7,
+  "accessibleConnections": 0,
+  "preReviewRoutingChecks": 112,
+  "labels": [
+    "Entrance",
+    "Reception",
+    "Lounge",
+    "Stairs",
+    "Elevator",
+    "Dining"
+  ],
+  "message": "AI proposed 8 locations. 3 candidate connections follow detected open space; 3 were traced around obstacles. 4 connections could not be traced safely and remain blocked. Move misplaced nodes or map actual doorways before retrying. All connections need review; distances need calibration. Draft navigation graph for the floor plan."
+}

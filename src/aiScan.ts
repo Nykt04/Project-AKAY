@@ -2,6 +2,7 @@ import type { BuildingFloor } from './buildings';
 import type { ClearanceGrid, Edge, MapNode } from './types';
 import { clearSegment, type ScanResult } from './scan';
 import { edgeGeometry } from './geometry';
+import { traceDraftConnections } from './tracePaths';
 
 const categories=['junction','facility','entrance','room','restroom','elevator','stairs','dining','reception','lounge','conference','fitness'];
 const record=(value:unknown):Record<string,unknown>=>{
@@ -19,6 +20,7 @@ const identifier=(value:unknown)=>{
 
 /** AI output is untrusted. It never supplies reviewed/accessibility flags or metric distances. */
 export function aiGraphToDraft(value:unknown,floor:BuildingFloor,grid:ClearanceGrid):ScanResult {
+  if(grid.imageWidth!==floor.width||grid.imageHeight!==floor.height)throw new Error('The obstacle map does not match this floor image. Scan this floor again before generating paths.');
   const data=record(value);
   if(!Array.isArray(data.nodes)||!Array.isArray(data.edges)||!Array.isArray(data.notes)||data.nodes.length>150||data.edges.length>250||data.notes.length>8)throw new Error('The AI returned an invalid or oversized graph. No draft was applied.');
   const notes=data.notes.map(note=>{if(typeof note!=='string')throw new Error('The AI returned invalid scan notes.');return note.slice(0,400);});
@@ -45,8 +47,8 @@ export function aiGraphToDraft(value:unknown,floor:BuildingFloor,grid:ClearanceG
   });
   const roomShortcuts=new Set(nodes.filter(n=>n.category==='room'&&edges.filter(e=>e.from===n.id||e.to===n.id).length>1).map(n=>n.id));
   edges.forEach(e=>{if(roomShortcuts.has(e.from)||roomShortcuts.has(e.to))e.traversable=false;});
-  const blocked=edges.filter(e=>!e.traversable).length;
-  return {nodes,edges,grid,message:`AI proposed ${nodes.length} locations and ${edges.length} connections. ${blocked?`${blocked} connections were blocked by obstacle or room-shortcut checks; correct them before use. `:''}All connections need review; distances need calibration. ${notes.join(' ')}`};
+  const traced=traceDraftConnections(nodes,edges,grid);
+  return {nodes,edges:traced.edges,grid,message:`AI proposed ${nodes.length} locations. ${traced.edges.length-traced.blocked} candidate connections follow detected open space; ${traced.repaired} were traced around obstacles. ${traced.blocked?`${traced.blocked} connections could not be traced safely and remain blocked. Move misplaced nodes or map actual doorways before retrying. `:''}All connections need review; distances need calibration.${notes.length?` AI notes (unverified): ${notes.join(' ')}`:''}`};
 }
 
 async function requestImage(floor:BuildingFloor):Promise<string> {
@@ -54,7 +56,10 @@ async function requestImage(floor:BuildingFloor):Promise<string> {
   const ratio=Math.min(1,1400/Math.max(source.naturalWidth,source.naturalHeight));
   const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(source.naturalWidth*ratio));canvas.height=Math.max(1,Math.round(source.naturalHeight*ratio));
   const ctx=canvas.getContext('2d')!;ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(source,0,0,canvas.width,canvas.height);
-  const image=canvas.toDataURL('image/jpeg',.88);
+  // Preserve thin wall/door lines in ordinary diagrams. Use JPEG only when the
+  // lossless image exceeds the request budget (the obstacle mask stays lossless).
+  let image=canvas.toDataURL('image/png');
+  if(image.length>2_200_000)image=canvas.toDataURL('image/jpeg',.92);
   if(image.length>2_200_000)throw new Error('This plan is too detailed for AI upload. Export a smaller image, or use the local scan.');
   return image;
 }
@@ -65,5 +70,7 @@ export async function scanWithAi(floor:BuildingFloor,grid:ClearanceGrid,accessCo
   catch{throw new Error('The AI scanner could not be reached or timed out. Check your connection, or use the local scan.');}
   const data=await response.json().catch(()=>{throw new Error('The AI endpoint is unavailable on this host. Use the configured Vercel deployment or the local development server.');});
   if(!response.ok)throw new Error(typeof data.error==='string'?data.error:'AI scanning failed. No draft was applied.');
-  return aiGraphToDraft(data.graph,floor,grid);
+  const draft=aiGraphToDraft(data.graph,floor,grid);
+  if(!draft.edges.some(edge=>edge.traversable))throw new Error('No AI connections could be traced through detected open space. Your existing draft was kept. Try a clearer plan or Local scan, then map actual doorways and correct misplaced nodes.');
+  return draft;
 }

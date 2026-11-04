@@ -1,0 +1,314 @@
+{
+  "graph": {
+    "nodes": [
+      {
+        "id": "j1",
+        "name": "Corridor North",
+        "x": 500,
+        "y": 280,
+        "category": "junction",
+        "destination": false
+      },
+      {
+        "id": "j2",
+        "name": "Corridor Mid-North",
+        "x": 500,
+        "y": 420,
+        "category": "junction",
+        "destination": false
+      },
+      {
+        "id": "j3",
+        "name": "Corridor Mid",
+        "x": 500,
+        "y": 550,
+        "category": "junction",
+        "destination": false
+      },
+      {
+        "id": "j4",
+        "name": "Corridor South",
+        "x": 500,
+        "y": 850,
+        "category": "junction",
+        "destination": false
+      },
+      {
+        "id": "e_roof",
+        "name": "Roof & Rest Area entrance",
+        "x": 500,
+        "y": 240,
+        "category": "room",
+        "destination": true
+      },
+      {
+        "id": "e_exit",
+        "name": "Exit entrance",
+        "x": 600,
+        "y": 280,
+        "category": "entrance",
+        "destination": true
+      },
+      {
+        "id": "e_logistics",
+        "name": "Logistics Service entrance",
+        "x": 440,
+        "y": 380,
+        "category": "room",
+        "destination": true
+      },
+      {
+        "id": "e_archives",
+        "name": "Archives entrance",
+        "x": 260,
+        "y": 380,
+        "category": "room",
+        "destination": true
+      },
+      {
+        "id": "e_meeting1",
+        "name": "Meeting Room 1 entrance",
+        "x": 240,
+        "y": 460,
+        "category": "room",
+        "destination": true
+      },
+      {
+        "id": "e_meeting2",
+        "name": "Meeting Room 2 entrance",
+        "x": 390,
+        "y": 460,
+        "category": "room",
+        "destination": true
+      },
+      {
+        "id": "e_manager",
+        "name": "Manager's Office entrance",
+        "x": 570,
+        "y": 350,
+        "category": "room",
+        "destination": true
+      },
+      {
+        "id": "e_financial",
+        "name": "Financial Department entrance",
+        "x": 570,
+        "y": 460,
+        "category": "room",
+        "destination": true
+      },
+      {
+        "id": "e_reception",
+        "name": "Reception Room entrance",
+        "x": 570,
+        "y": 600,
+        "category": "room",
+        "destination": true
+      },
+      {
+        "id": "e_working",
+        "name": "Working Area entrance",
+        "x": 440,
+        "y": 600,
+        "category": "room",
+        "destination": true
+      },
+      {
+        "id": "e_elevators",
+        "name": "Elevators",
+        "x": 720,
+        "y": 900,
+        "category": "elevator",
+        "destination": true
+      },
+      {
+        "id": "e_stairs",
+        "name": "Stairs",
+        "x": 860,
+        "y": 900,
+        "category": "stairs",
+        "destination": true
+      },
+      {
+        "id": "e_restroom",
+        "name": "Restroom entrance",
+        "x": 220,
+        "y": 850,
+        "category": "restroom",
+        "destination": true
+      }
+    ],
+    "edges": [
+      {
+        "from": "j1",
+        "to": "e_roof",
+        "kind": "corridor",
+        "via": []
+      },
+      {
+        "from": "j1",
+        "to": "e_exit",
+        "kind": "corridor",
+        "via": []
+      },
+      {
+        "from": "j1",
+        "to": "j2",
+        "kind": "corridor",
+        "via": []
+      },
+      {
+        "from": "j2",
+        "to": "e_logistics",
+        "kind": "corridor",
+        "via": []
+      },
+      {
+        "from": "j2",
+        "to": "e_archives",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 440,
+            "y": 420
+          },
+          {
+            "x": 260,
+            "y": 420
+          }
+        ]
+      },
+      {
+        "from": "j2",
+        "to": "e_manager",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 570,
+            "y": 420
+          }
+        ]
+      },
+      {
+        "from": "j2",
+        "to": "j3",
+        "kind": "corridor",
+        "via": []
+      },
+      {
+        "from": "j3",
+        "to": "e_meeting1",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 440,
+            "y": 550
+          },
+          {
+            "x": 440,
+            "y": 460
+          },
+          {
+            "x": 240,
+            "y": 460
+          }
+        ]
+      },
+      {
+        "from": "j3",
+        "to": "e_meeting2",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 390,
+            "y": 550
+          }
+        ]
+      },
+      {
+        "from": "j3",
+        "to": "e_financial",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 570,
+            "y": 550
+          }
+        ]
+      },
+      {
+        "from": "j3",
+        "to": "e_reception",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 570,
+            "y": 600
+          }
+        ]
+      },
+      {
+        "from": "j3",
+        "to": "e_working",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 440,
+            "y": 600
+          }
+        ]
+      },
+      {
+        "from": "j3",
+        "to": "j4",
+        "kind": "corridor",
+        "via": []
+      },
+      {
+        "from": "j4",
+        "to": "e_elevators",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 720,
+            "y": 850
+          }
+        ]
+      },
+      {
+        "from": "j4",
+        "to": "e_stairs",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 860,
+            "y": 850
+          }
+        ]
+      },
+      {
+        "from": "j4",
+        "to": "e_restroom",
+        "kind": "corridor",
+        "via": [
+          {
+            "x": 220,
+            "y": 850
+          }
+        ]
+      }
+    ],
+    "notes": [
+      "Storage Room has no visible doorway and is left as an isolated destination without graph edges.",
+      "Graph covers the main corridor network and reachable room entrances."
+    ]
+  },
+  "model": "gemini-3.5-flash-lite",
+  "measurement": {
+    "status": 200,
+    "durationMs": 4568,
+    "model": "gemini-3.5-flash-lite",
+    "nodes": 17,
+    "edges": 16
+  }
+}

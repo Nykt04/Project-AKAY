@@ -1,0 +1,14 @@
+import fs from 'node:fs/promises';
+import {deflateSync} from 'node:zlib';
+import {buildClearanceGrid} from '../src/scan';
+import {traceOpenPath} from '../src/tracePaths';
+const input=JSON.parse(await fs.readFile('.artifacts/office-mask.json','utf8'));
+const grid=buildClearanceGrid(input);
+const entries:[string,[number,number]][]=[['Roof approach',[325,250]],['Logistics entrance',[290,307]],['Manager entrance',[350,280]],['Meeting room 1 entrance',[140,354]],['Meeting room 2 entrance',[250,347]],['Financial entrance',[350,365]],['Reception entrance',[350,450]],['Working area entrance',[290,450]],['Elevator approach',[460,670]],['Stair approach',[570,650]],['Restroom approach',[57,644]],['Storage room interior (no visible door)',[490,570]]];
+const origin:[number,number]=[325,660];
+const paths=entries.map(([name,end])=>({name,end,path:traceOpenPath(grid,origin,end)}));
+await fs.writeFile('.artifacts/office-corridors.json',JSON.stringify({origin,paths},null,2));
+console.log(paths.map(p=>({name:p.name,points:p.path?.length??0})));
+await fs.mkdir('tests/fixtures',{recursive:true});
+const {cells,...dimensions}=grid;
+await fs.writeFile('tests/fixtures/office-clearance.json',JSON.stringify({source:'office-building.png supplied by user; 384px conservative darkest-pixel mask, threshold 155, no obstacle edits. Test data only.',...dimensions,deflatedCells:deflateSync(Uint8Array.from(cells)).toString('base64')},null,2));

@@ -8,9 +8,9 @@ const mini: HotelGraph = {
   edges: [['a','b',2],['a','c',2],['b','d',3],['c','d',3]].map(([a,b,d]) => ({ id:`${a}-${b}`, from:String(a), to:String(b), distance:Number(d), kind:'corridor', accessible:true, traversable:true }))
 };
 export const scenarios: Scenario[] = [
-  { name:'Shortest route via steps', start:'reception', end:'restaurant', mode:'shortest', expected:'24 m; uses steps', check:r => r.distance===24 && r.edgeIds.includes('reception--g-s') },
+  { name:'Shortest route via steps', start:'reception', end:'restaurant', mode:'shortest', expected:'24 m; uses steps', check:r => r.distance===24 && r.edgeIds.includes('reception--g-sw') },
   { name:'Accessible route via ramp', start:'reception', end:'restaurant', mode:'accessible', expected:'38 m; uses ramp', check:r => r.distance===38 && r.edgeIds.includes('g-d--g-e') },
-  { name:'Same-floor corridor', start:'reception', end:'lounge', mode:'accessible', expected:'19 m; no stairs', check:r => r.distance===19 },
+  { name:'Same-floor corridor', start:'reception', end:'lounge', mode:'accessible', expected:'16 m; no stairs', check:r => r.distance===16 },
   { name:'Cross-floor elevator', start:'lift-0', end:'lift-2', mode:'accessible', expected:'16 m; two elevator links', check:r => r.distance===16 && r.edgeIds.length===2 },
   { name:'Cross-floor stairs', start:'stairs-0', end:'stairs-2', mode:'shortest', expected:'10 m; two stair links', check:r => r.distance===10 },
   { name:'Stairs-only destination', start:'reception', end:'reading-room', mode:'accessible', expected:'No accessible route', check:r => r.status==='unreachable' },

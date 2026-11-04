@@ -60,6 +60,8 @@ Vite normally serves http://localhost:5173/. Production check: `npm run build`; 
 
 Validation commands: `npm test`, `npm run typecheck`, `npm run build`, `npm run test:sites`.
 
+Performance check: `npm run benchmark` measures a fixed 500-node / 1,469-edge route and a synthetic 144 × 120 pixel local scan. It uses five warm-ups and 30 recorded runs, reporting median and nearest-rank p95. These measurements include route validation but exclude rendering, image decoding, worker messaging and cloud AI. See [performance measurements](docs/performance.md) for the recorded baseline and limitations.
+
 The Sites wrapper is preserved. Production output includes `dist/client/index.html`, `dist/server/index.js` and `dist/.openai/hosting.json`.
 
 Main source: `src/Workspace.tsx` (establishments), `src/FloorPlanStudio.tsx` (editor), `src/scan.ts` and `src/scan.worker.ts` (scanning), `src/buildingEditor.ts` (calibration/review), `src/buildings.tsx` (data/storage), `src/routing.ts` (Dijkstra), `src/geometry.ts` (path validation).
