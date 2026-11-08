@@ -10,6 +10,13 @@ export function routeFeatures(route: RouteResult, graph: HotelGraph = hotel): st
   const kinds = new Set(route.edgeIds.map(id => edgeById[id]?.kind));
   return [kinds.has('stairs') ? 'Includes steps' : '', kinds.has('elevator') ? 'Via elevator' : '', kinds.has('ramp') ? 'Via ramp' : ''].filter(Boolean).join(' · ') || 'Level corridors';
 }
+/**
+ * ============================================================================
+ * [ALGORITHM OUTPUT TRANSLATION: TURN-BY-TURN DIRECTIONS]
+ * Converts Dijkstra's settled `nodeIds` and `edgeIds` into human-readable
+ * navigation steps (corridor merges, ramp/stair calls, and floor transfers).
+ * ============================================================================
+ */
 export function routeDirections(route: RouteResult, graph: HotelGraph = hotel, floors: readonly {id:number;name:string}[] = sampleFloors): Direction[] {
   if(route.status!=='found') return [];
   const nodeById=Object.fromEntries(graph.nodes.map(n=>[n.id,n])), edgeById=Object.fromEntries(graph.edges.map(e=>[e.id,e]));

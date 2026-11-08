@@ -33,14 +33,13 @@ export function LocationPicker({label,value,onChange,invalid=false}:{label:strin
         </span>
         {label}
       </label>
-      {selected && <span className="picker-selected-floor-tag">{floorName(selected.floor)}</span>}
     </div>
     <div className="location-trigger-wrapper">
       <button ref={trigger} type="button" className={`location-trigger ${selected ? 'has-selection' : ''}`} aria-haspopup="listbox" aria-expanded={open}
         aria-controls={open?`${id}-list`:undefined} aria-invalid={invalid||undefined} aria-labelledby={`${id}-label ${id}-value`}
         onClick={()=>setOpen(!open)} onKeyDown={event=>{if(event.key==='ArrowDown'){event.preventDefault();setOpen(true);}}}>
         <span className="picker-facility-icon">
-          <FacilityIcon category={selected?.category} size={20} />
+          <FacilityIcon category={selected?.category} size={18} />
         </span>
         <span id={`${id}-value`} className={!selected?'placeholder':''}>
           {selected ? (
@@ -59,9 +58,9 @@ export function LocationPicker({label,value,onChange,invalid=false}:{label:strin
       )}
     </div>
     {open&&<div className="location-popover">
-      <div className="search-row"><MagnifyingGlass size={18} aria-hidden="true"/>
+      <div className="search-row"><MagnifyingGlass size={16} aria-hidden="true"/>
         <input ref={input} role="combobox" aria-label={`Search ${label.toLowerCase()}`} aria-autocomplete="list" aria-expanded="true"
-          aria-controls={`${id}-list`} aria-activedescendant={activeId} value={query} placeholder="Search name or floor…"
+          aria-controls={`${id}-list`} aria-activedescendant={activeId} value={query} placeholder="Search facility or floor…"
           onChange={event=>{setQuery(event.target.value);setActive(0);}}
           onKeyDown={event=>{
             if(event.key==='Escape'){event.preventDefault();setOpen(false);trigger.current?.focus();}
@@ -75,7 +74,7 @@ export function LocationPicker({label,value,onChange,invalid=false}:{label:strin
       <ul id={`${id}-list`} role="listbox" aria-label={label} className="location-list">
         {matches.map((node,index)=><li role="option" aria-selected={value===node.id} id={`${id}-${node.id}`} key={node.id} className={active===index?'is-active':''}>
           <button type="button" tabIndex={-1} onClick={()=>choose(node.id)} onPointerMove={()=>setActive(index)}>
-            <FacilityIcon category={node.category} size={19}/><span>{node.name}<small>{floorName(node.floor)}</small></span>{value===node.id&&<Check size={17} aria-hidden="true"/>}
+            <FacilityIcon category={node.category} size={18}/><span>{node.name}<small>{floorName(node.floor)}</small></span>{value===node.id&&<Check size={16} aria-hidden="true"/>}
           </button>
         </li>)}
         {!matches.length&&<li className="search-empty" role="presentation">No matching locations. Try a facility name or a floor.</li>}

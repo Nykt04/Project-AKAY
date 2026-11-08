@@ -7,7 +7,13 @@ const compare = (a: QueueEntry, b: QueueEntry) => {
   return Math.abs(diff) > 1e-12 ? diff : (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 };
 
-/** A binary min-heap avoids sorting every unvisited node on every step. */
+/**
+ * ============================================================================
+ * [ALGORITHM: PRIORITY QUEUE (BINARY MIN-HEAP)]
+ * Always pops the unvisited node with the smallest cumulative distance in O(log V).
+ * Ties are broken deterministically by node ID.
+ * ============================================================================
+ */
 class RouteQueue {
   private entries: QueueEntry[] = [];
   push(entry: QueueEntry) {
@@ -154,7 +160,10 @@ export function findRoute(
   const startNode = nodes.get(start);
   const endNode = nodes.get(end);
 
-  // DECISION: Input validation & boundary verification
+  // ==========================================================================
+  // [DECISION 1: PRE-FLIGHT GRAPH & OBSTACLE VALIDATION]
+  // Rejects missing endpoints, points on walls/obstacles, or invalid geometry.
+  // ==========================================================================
   if (!startNode || !endNode) {
     return finish({ message: 'Choose a starting point and destination from the building directory.' });
   }
@@ -171,9 +180,10 @@ export function findRoute(
     return finish({ message: 'The map contains invalid connections.' });
   }
 
-  // --------------------------------------------------------------------------
-  // DECISION MAKING: GRAPH FILTERING & ADJACENCY MATRIX CONSTRUCTION
-  // --------------------------------------------------------------------------
+  // ==========================================================================
+  // [DECISION 2: CONSTRAINT FILTERING (ACCESSIBLE VS. SHORTEST)]
+  // Builds the adjacency list and prunes blocked or inaccessible edges.
+  // ==========================================================================
   const adjacency = new Map(graph.nodes.map(n => [n.id, [] as { next: string; edgeId: string; distance: number }[]]));
 
   for (const edge of graph.edges) {
@@ -194,9 +204,9 @@ export function findRoute(
     adjacency.get(edge.to)!.push({ next: edge.from, edgeId: edge.id, distance: edge.distance });
   }
 
-  // --------------------------------------------------------------------------
-  // ALGORITHM: DIJKSTRA SHORTEST-PATH SEARCH
-  // --------------------------------------------------------------------------
+  // ==========================================================================
+  // [ALGORITHM: DIJKSTRA SHORTEST-PATH SEARCH LOOP]
+  // ==========================================================================
   const distances = new Map(graph.nodes.map(n => [n.id, Infinity]));
   const previous = new Map<string, { node: string; edge: string }>();
   const settled = new Set<string>();
@@ -226,12 +236,16 @@ export function findRoute(
     // Target reached: break early, shortest path to 'end' is guaranteed
     if (id === end) break;
 
-    // DECISION: Room Shortcut Barrier
-    // Rooms (restrooms, offices, suites) are destinations, NEVER intermediate passageways.
-    // If we settle a room node that is not the start node, do not expand through it.
+    // ========================================================================
+    // [DECISION 3: ROOM SHORTCUT BARRIER]
+    // Rooms are destinations, NEVER intermediate corridors.
+    // ========================================================================
     if (id !== start && nodes.get(id)?.category === 'room') continue;
 
-    // DECISION: Edge relaxation
+    // ========================================================================
+    // [DECISION 4: EDGE RELAXATION & DISTANCE UPDATE]
+    // Updates neighbor distance if (current distance + edge weight) is shorter.
+    // ========================================================================
     for (const edge of adjacency.get(id)!) {
       if (settled.has(edge.next)) continue;
 
@@ -247,9 +261,9 @@ export function findRoute(
     }
   }
 
-  // --------------------------------------------------------------------------
-  // DECISION MAKING: OUTCOME EVALUATION & PATH RECONSTRUCTION
-  // --------------------------------------------------------------------------
+  // ==========================================================================
+  // [ALGORITHM: OUTCOME EVALUATION & PATH RECONSTRUCTION (BACKTRACKING)]
+  // ==========================================================================
   if (!settled.has(end)) {
     return finish({
       status: 'unreachable',

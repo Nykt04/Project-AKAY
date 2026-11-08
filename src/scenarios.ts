@@ -1,4 +1,5 @@
 import { hotel } from './hotel';
+import { applyClosures } from './closures';
 import { findRoute, validateGraph } from './routing';
 import type { HotelGraph, RouteMode, RouteResult } from './types';
 
@@ -8,15 +9,16 @@ const mini: HotelGraph = {
   edges: [['a','b',2],['a','c',2],['b','d',3],['c','d',3]].map(([a,b,d]) => ({ id:`${a}-${b}`, from:String(a), to:String(b), distance:Number(d), kind:'corridor', accessible:true, traversable:true }))
 };
 export const scenarios: Scenario[] = [
-  { name:'Shortest route via steps', start:'reception', end:'restaurant', mode:'shortest', expected:'24 m; uses steps', check:r => r.distance===24 && r.edgeIds.includes('reception--g-sw') },
-  { name:'Accessible route via ramp', start:'reception', end:'restaurant', mode:'accessible', expected:'38 m; uses ramp', check:r => r.distance===38 && r.edgeIds.includes('g-d--g-e') },
-  { name:'Same-floor corridor', start:'reception', end:'lounge', mode:'accessible', expected:'16 m; no stairs', check:r => r.distance===16 },
-  { name:'Cross-floor elevator', start:'lift-0', end:'lift-2', mode:'accessible', expected:'16 m; two elevator links', check:r => r.distance===16 && r.edgeIds.length===2 },
-  { name:'Cross-floor stairs', start:'stairs-0', end:'stairs-2', mode:'shortest', expected:'10 m; two stair links', check:r => r.distance===10 },
-  { name:'Stairs-only destination', start:'reception', end:'reading-room', mode:'accessible', expected:'No accessible route', check:r => r.status==='unreachable' },
-  { name:'Disconnected destination', start:'reception', end:'private-room', mode:'shortest', expected:'No public route', check:r => r.status==='unreachable' },
-  { name:'Already at destination', start:'reception', end:'reception', mode:'accessible', expected:'0 m; no connections', check:r => r.distance===0 && r.nodeIds.length===1 && r.edgeIds.length===0 },
-  { name:'Missing selection', start:'', end:'restaurant', mode:'shortest', expected:'Invalid selection', check:r => r.status==='invalid' },
+  { name:'Shortest route via front steps', start:'parking-lot', end:'main-entrance', mode:'shortest', expected:'14 m; uses front steps', check:r => r.distance===14 && r.edgeIds.includes('steps-out-bot--plaza-entry-j') },
+  { name:'Accessible route via exterior ramp', start:'parking-lot', end:'main-entrance', mode:'accessible', expected:'37 m; uses 1:12 exterior ramp', check:r => r.distance===37 && r.edgeIds.includes('ramp-out-top--ramp-out-bot') },
+  { name:'Interior lobby ramp route', start:'main-entrance', end:'lift-0', mode:'accessible', expected:'46 m; uses interior lobby ramp', check:r => r.distance===46 && r.edgeIds.includes('lobby-east-j--f0-ramp-j') },
+  { name:'Same-floor glass shop access', start:'main-entrance', end:'souvenir-shop', mode:'accessible', expected:'13.5 m; level lobby through glass door', check:r => r.distance===13.5 },
+  { name:'Cross-floor elevator', start:'lift-0', end:'lift-2', mode:'accessible', expected:'24 m; two elevator links', check:r => r.distance===24 && r.edgeIds.length===2 },
+  { name:'Cross-floor stairs', start:'stairs-0', end:'stairs-2', mode:'shortest', expected:'17 m; two stair links', check:r => r.distance===17 },
+  { name:'Elevator closure blocks upper accessible route', start:'main-entrance', end:'library', mode:'accessible', graph:applyClosures(hotel,['lift-0--lift-1']), expected:'No accessible route when elevator closed', check:r => r.status==='unreachable' },
+  { name:'Disconnected destination', start:'main-entrance', end:'records-room', mode:'shortest', expected:'No public route', check:r => r.status==='unreachable' },
+  { name:'Already at destination', start:'main-entrance', end:'main-entrance', mode:'accessible', expected:'0 m; no connections', check:r => r.distance===0 && r.nodeIds.length===1 && r.edgeIds.length===0 },
+  { name:'Missing selection', start:'', end:'library', mode:'shortest', expected:'Invalid selection', check:r => r.status==='invalid' },
   { name:'Equal-distance alternatives', start:'a', end:'d', mode:'shortest', graph:mini, expected:'5 m; deterministic a → b → d', check:r => r.distance===5 && r.nodeIds.join(',')==='a,b,d' },
   { name:'Zero-length connection', start:'a', end:'b', mode:'shortest', graph:{...mini,edges:[{...mini.edges[0],distance:0}]}, expected:'0 m; valid connected route', check:r => r.distance===0 && r.edgeIds.length===1 },
   { name:'Closed connection excluded', start:'a', end:'b', mode:'shortest', graph:{...mini,edges:[{...mini.edges[0],traversable:false}]}, expected:'No traversable route', check:r => r.status==='unreachable' },
@@ -25,7 +27,7 @@ export const scenarios: Scenario[] = [
 export function routeInvariant(graph: HotelGraph, r: RouteResult) {
   if (r.status !== 'found') return r.distance === null && r.edgeIds.length===0 && r.nodeIds.length===0;
   const selected = r.edgeIds.map(id => graph.edges.find(e => e.id===id));
-  return r.nodeIds.length===r.edgeIds.length+1 && selected.every((e,i) => e && e.traversable && ((e.from===r.nodeIds[i] && e.to===r.nodeIds[i+1]) || (e.to===r.nodeIds[i] && e.from===r.nodeIds[i+1])) && (r.mode==='shortest' || (e.accessible && e.kind!=='stairs'))) && selected.reduce((sum,e) => sum + e!.distance,0)===r.distance;
+  return r.nodeIds.length===r.edgeIds.length+1 && selected.every((e,i) => e && e.traversable && ((e.from===r.nodeIds[i] && e.to===r.nodeIds[i+1]) || (e.to===r.nodeIds[i] && e.from===r.nodeIds[i+1])) && (r.mode==='shortest' || (e.accessible && e.kind!=='stairs'))) && Math.round(selected.reduce((sum,e) => sum + e!.distance,0)*100)/100===r.distance;
 }
 export function runScenarios() { return scenarios.map(s => { const graph=s.graph??hotel; const result=findRoute(graph,s.start,s.end,s.mode); return { name:s.name, expected:s.expected, mode:s.mode, result, passed:s.check(result) && routeInvariant(graph,result) }; }); }
 export const graphIsValid = () => validateGraph(hotel).length===0;

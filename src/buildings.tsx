@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo } from 'react';
 import { hotel, floors as sampleFloors } from './hotel';
+import { floorSvgDataUrl, METERS_PER_PIXEL, PLAN_HEIGHT, PLAN_WIDTH } from './civicPlan';
 import type { HotelGraph, MapNode, Edge } from './types';
 
 export interface BuildingFloor {
@@ -12,7 +13,7 @@ export interface Building {
 }
 export const sampleBuilding: Building = {
   id: 'linden-sample', name: 'Civic Center', sample: true, status: 'ready', updatedAt: '', graph: hotel,
-  floors: sampleFloors.map(f => ({ ...f, image: `/assets/floor-${f.id}.png`, width: 1000, height: 760 })),
+  floors: sampleFloors.map(f => ({ ...f, image: floorSvgDataUrl(f.id), width: PLAN_WIDTH, height: PLAN_HEIGHT, metersPerPixel: METERS_PER_PIXEL })),
 };
 export function buildingData(building: Building) {
   return {

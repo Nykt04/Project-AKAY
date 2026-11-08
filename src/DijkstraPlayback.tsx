@@ -24,9 +24,12 @@ export function DijkstraPlayback({graph,start,end,mode,floor,onFloor,route,alter
   const [runMode,setRunMode]=useState<RouteMode>(mode), [index,setIndex]=useState(-1), [playing,setPlaying]=useState(false), [speed,setSpeed]=useState<keyof typeof speeds>('normal');
   const ready=!!(nodeById[start]&&nodeById[end]);
 
-  // ALGORITHM USAGE & TRACE CAPTURE:
-  // Runs findRoute() passing an empty steps array (`TraceStep[]`). Dijkstra records
-  // each settled node and its relaxed edges into this array for step-by-step playback.
+  // ==========================================================================
+  // [ALGORITHM VISUALIZATION: STEP-BY-STEP TRACE PLAYBACK]
+  // Passes an empty `TraceStep[]` array into `findRoute()`. Dijkstra records
+  // every settled node and relaxed neighbor edge so the Research View can
+  // replay the exact priority-queue decisions on the floor map.
+  // ==========================================================================
   const run=useMemo(()=>{
     const steps:TraceStep[]=[];
     const result=ready?findRoute(graph,start,end,runMode,steps):null;

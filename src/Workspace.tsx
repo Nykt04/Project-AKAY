@@ -16,30 +16,30 @@ const FloorPlanStudio = lazy(() => import('./FloorPlanStudio').then(module => ({
 const PRELOADER_FLOORS = [
   {
     id: 0,
-    code: 'LEVEL G',
-    name: 'Ground Concourse',
-    summary: 'Main entrance, reception desk, accessible ramp & dining hall',
-    path: 'M 190,220 L 190,175 L 145,175 L 145,145 L 310,145 L 310,75 L 355,75',
+    code: 'LEVEL 1F',
+    name: '1st Floor & Vehicle Plaza',
+    summary: 'Rescue & fire truck bays, main entrance, info lounge & glass souvenir shop',
+    path: 'M 190,220 L 190,175 L 310,175 L 310,145 L 120,145 L 120,85',
     start: { x: 190, y: 220, label: 'Main entrance' },
-    end: { x: 355, y: 75, label: 'Restaurant' },
+    end: { x: 120, y: 85, label: 'Elevator core' },
   },
   {
     id: 1,
-    code: 'LEVEL 01',
-    name: 'First Floor Suites',
-    summary: 'Elevator core, conference rooms & accessible east corridor',
-    path: 'M 255,95 L 255,145 L 120,145 L 120,85',
-    start: { x: 255, y: 95, label: 'Elevator' },
-    end: { x: 120, y: 85, label: 'Meeting suite' },
+    code: 'LEVEL 2F',
+    name: '2nd Floor Library & Offices',
+    summary: 'Public library, two rectangular administrative offices & restroom',
+    path: 'M 120,95 L 120,145 L 310,145 L 310,85',
+    start: { x: 120, y: 95, label: 'Elevator' },
+    end: { x: 310, y: 85, label: 'Public library' },
   },
   {
     id: 2,
-    code: 'LEVEL 02',
-    name: 'Second Floor Gallery',
-    summary: 'Step-free terrace access, quiet study & north wing rooms',
-    path: 'M 255,95 L 255,145 L 365,145 L 365,195',
-    start: { x: 255, y: 95, label: 'Elevator' },
-    end: { x: 365, y: 195, label: 'East wing' },
+    code: 'LEVEL 3F',
+    name: '3rd Floor Function Halls',
+    summary: 'Four large function halls & stacked accessible restroom',
+    path: 'M 120,95 L 120,145 L 365,145 L 365,85',
+    start: { x: 120, y: 95, label: 'Elevator' },
+    end: { x: 365, y: 85, label: 'Function Hall 2' },
   },
 ] as const;
 
@@ -190,21 +190,9 @@ export function Workspace() {
   const [library,setLibrary]=useState<Building[]>([]),[selected,setSelected]=useState(sampleBuilding.id);
   const [editing,setEditing]=useState(false),[loading,setLoading]=useState(()=>typeof window!=='undefined'&&!!readRouteParams().est&&readRouteParams().est!=='sample'&&readRouteParams().est!==sampleBuilding.id),[error,setError]=useState('');
   const [saving,setSaving]=useState(false),[tool,setTool]=useState<'closures'|'codes'|null>(null);
-  const [booting,setBooting]=useState(()=>typeof window!=='undefined'),[bootExiting,setBootExiting]=useState(false);
   const openTool=(next:'closures'|'codes')=>{setTool(next);if(toolsMenu.current)toolsMenu.current.open=false;};
   const toolsMenu=useRef<HTMLDetailsElement>(null);
   const current=library.find(b=>b.id===selected)??sampleBuilding;
-
-  const dismissLoader=useCallback(()=>{
-    setBootExiting(true);
-    window.setTimeout(()=>{setBooting(false);setBootExiting(false);},420);
-  },[]);
-
-  useEffect(()=>{
-    const t1=window.setTimeout(()=>setBootExiting(true),1550);
-    const t2=window.setTimeout(()=>{setBooting(false);setBootExiting(false);},1970);
-    return ()=>{window.clearTimeout(t1);window.clearTimeout(t2);};
-  },[]);
 
   useEffect(()=>{loadBuildings().then(list=>{setLibrary(list);const est=readRouteParams().est;const shared=list.find(b=>b.id===est&&b.status==='ready');if(shared)setSelected(shared.id);}).catch(()=>setError('Saved establishments could not be loaded. Browser storage must be available to save your plans.')).finally(()=>setLoading(false));},[]);
   const onSaved=useCallback((building:Building)=>setLibrary(old=>[...old.filter(b=>b.id!==building.id),building]),[]);
@@ -216,12 +204,12 @@ export function Workspace() {
   };
   const inStudio = editing && !current.sample;
   return <>
-    {(booting||loading)&&<CivicLoader buildingName={current.name||'Civic Center'} exiting={bootExiting&&!loading} onSkip={dismissLoader}/>}
+    {loading&&<CivicLoader buildingName={current.name||'Civic Center'} exiting={false} onSkip={()=>setLoading(false)}/>}
     <nav className={`workspace-bar ${inStudio ? 'is-studio-bar' : 'is-integrated-bar'}`} aria-label="Establishment workspace">
-      <a className="workspace-brand" href="#workspace-content"><Buildings size={20}/><span>Indoor wayfinding<small>Accessible paths, place by place</small></span></a>
+      <a className="workspace-brand" href="#workspace-content"><Buildings size={18}/><span>Indoor wayfinding</span></a>
       <div className="workspace-controls-cluster">
-        <label className="workspace-picker"><span>Facility</span><select disabled={loading||saving} value={current.id} onChange={e=>{setSelected(e.target.value);const b=library.find(item=>item.id===e.target.value);setEditing(b?.status==='draft');}}><option value={sampleBuilding.id}>Civic Center · sample</option>{library.map(b=><option key={b.id} value={b.id}>{b.name||'Untitled establishment'}{b.status==='draft'?' · draft':''}</option>)}</select></label>
-        <details className="workspace-tools" ref={toolsMenu}><summary><SlidersHorizontal size={16} aria-hidden="true"/>Map tools</summary><div className="workspace-actions">
+        <label className="workspace-picker"><span>Facility</span><select disabled={loading||saving} value={current.id} onChange={e=>{setSelected(e.target.value);const b=library.find(item=>item.id===e.target.value);setEditing(b?.status==='draft');}}><option value={sampleBuilding.id}>Civic Center</option>{library.map(b=><option key={b.id} value={b.id}>{b.name||'Untitled establishment'}{b.status==='draft'?' (draft)':''}</option>)}</select></label>
+        <details className="workspace-tools" ref={toolsMenu}><summary aria-busy={saving}>{saving?'Saving…':<><SlidersHorizontal size={16} aria-hidden="true"/>Map tools</>}</summary><div className="workspace-actions">
           {!current.sample&&<button className="secondary-button" disabled={saving} onClick={()=>{if(editing&&current.status==='draft')setSelected(sampleBuilding.id);setEditing(v=>!v);if(toolsMenu.current)toolsMenu.current.open=false;}}>{editing?'Exit setup':'Manage floor plans'}</button>}
           <button className="secondary-button" disabled={loading||saving} onClick={create}><Plus size={16}/>New establishment</button>
           {!editing&&current.status==='ready'&&<>

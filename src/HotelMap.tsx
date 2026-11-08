@@ -57,12 +57,11 @@ export function HotelMap({floor,onFloor,route,alternative,onDestination,onStart,
     const behavior:ScrollBehavior=window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';
     el.scrollTo({left:x*scale-el.clientWidth/2,top:y*scale-el.clientHeight/2,behavior});
   };
-  // Zoom to fit the route (or the current step) whenever the floor, route or step changes.
+  // Zoom to fit the active step when stepping through directions; keep overview at full 1x sheet view.
   useEffect(()=>{
     setFailed(false);setMenu(null);
     const el=scroll.current;if(!el)return;
-    const isMobileOverview=el.clientWidth>0&&el.clientWidth<=768&&!focusEdges.length;
-    const points=research||trace||isMobileOverview?[]:framePoints();
+    const points=research||trace||!focusEdges.length?[]:framePoints();
     if(!points.length){pendingCenter.current=null;setZoom(1);el.scrollTo(0,0);return;}
     const xs=points.map(p=>p[0]), ys=points.map(p=>p[1]);
     const minX=Math.min(...xs), maxX=Math.max(...xs), minY=Math.min(...ys), maxY=Math.max(...ys);
@@ -86,9 +85,9 @@ export function HotelMap({floor,onFloor,route,alternative,onDestination,onStart,
   const menuNode=menu?nodeById[menu]:undefined;
 
   return <section id="floor-map" tabIndex={-1} className={`map-panel ${research?'research-map':''}`} aria-label="Building floor map">
-    <div className="map-heading"><div className="map-title"><span className="map-title-icon"><MapTrifold size={26} aria-hidden="true"/></span><div><h2>{floorName(floor)}</h2><p>{plan.description}</p></div></div>
+    <div className="map-heading"><div className="map-title"><span className="map-title-icon"><MapTrifold size={20} aria-hidden="true"/></span><div><h2>{floorName(floor)}</h2><p>{plan.description}</p></div></div>
       <div className="floor-tabs" role="group" aria-label="Choose floor">{floors.map(f=><button key={f.id} type="button" aria-label={`Show ${f.name.toLowerCase()}`} aria-pressed={floor===f.id} onClick={()=>onFloor(f.id)}>{f.short}{routeFloors.length>1&&routeFloors.includes(f.id)&&<span className="floor-route-dot"/>}</button>)}</div></div>
-    {routeFloors.length>1&&<div className="floor-notice"><Elevator size={17}/>Your route continues across {routeFloors.length} floors. Use step-by-step directions to follow each floor.</div>}
+    {routeFloors.length>1&&<div className="floor-notice"><Elevator size={16}/>Route spans {routeFloors.length} floors — use step-by-step to follow each level.</div>}
     {routeFloors.length>0&&!routeFloors.includes(floor)&&<div className="map-floor-hint"><span>The selected route does not pass through this floor.</span><button className="text-button" onClick={()=>onFloor(routeFloors[0])}>Show route floor</button></div>}
     <div className={`map-scroll ${zoom>1?'is-zoomed':''}`} ref={scroll} tabIndex={0} role="region" aria-label="Scrollable floor plan; use zoom controls below" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={endDrag} onPointerLeave={endDrag} onClickCapture={e=>{if(drag.current?.moved){e.stopPropagation();e.preventDefault();}}}>
       <div className={`map-canvas ${switchingFloor?'floor-switching':''}`} style={{width:`${zoom*100}%`,aspectRatio:`${plan.width}/${plan.height}`}}>
@@ -121,12 +120,11 @@ export function HotelMap({floor,onFloor,route,alternative,onDestination,onStart,
           })}
         </svg>
         {!research&&closedNodes.map(id=><span key={`cn-${id}`} className="map-annotation closed-annotation" style={{left:`${nodeById[id].x/plan.width*100}%`,top:`${(nodeById[id].y+34)/plan.height*100}%`}}><Prohibit size={12} aria-hidden="true"/>Out of service</span>)}
-        {!research&&facilities.filter(n=>n.floor===floor).map(n=><button type="button" key={n.id} className={`map-label ${n.id===start||n.id===end?'endpoint-label':''}`} style={{left:`${(n.labelX??n.x)/plan.width*100}%`,top:`${(n.labelY??n.y)/plan.height*100}%`}} onClick={()=>pick(n.id)} aria-haspopup={onStart?'menu':undefined} aria-expanded={onStart?menu===n.id:undefined} aria-label={onStart?`${n.name}, ${floorName(floor)}: set as start or destination`:`Set destination to ${n.name}, ${floorName(floor)}`}><FacilityIcon category={n.category} size={23}/><span>{n.name}</span>{building.sample&&n.id==='reading-room'&&<small>Steps only</small>}{building.sample&&n.id==='private-room'&&<small>No public connection</small>}</button>)}
+        {!research&&facilities.filter(n=>n.floor===floor&&(n.category!=='stairs'&&n.category!=='elevator'||n.id===start||n.id===end)).map(n=><button type="button" key={n.id} className={`map-label ${n.id===start||n.id===end?'endpoint-label':''} ${n.id===end?'is-destination-label':''}`} style={{left:`${(n.labelX??n.x)/plan.width*100}%`,top:`${(n.labelY??n.y)/plan.height*100}%`}} onClick={()=>pick(n.id)} aria-haspopup={onStart?'menu':undefined} aria-expanded={onStart?menu===n.id:undefined} aria-label={onStart?`${n.name}, ${floorName(floor)}: set as start or destination`:`Set destination to ${n.name}, ${floorName(floor)}`}><FacilityIcon category={n.category} size={16}/><span>{n.name}</span>{building.sample&&n.id==='records-room'&&<small>Staff only</small>}</button>)}
         {menuNode&&menuNode.floor===floor&&<div className="map-pick-menu" role="menu" aria-label={`${menuNode.name} options`} style={{left:`${(menuNode.labelX??menuNode.x)/plan.width*100}%`,top:`${(menuNode.labelY??menuNode.y)/plan.height*100}%`}}>
           <button role="menuitem" type="button" autoFocus onClick={()=>{onStart?.(menuNode.id);setMenu(null);}}><NavigationArrow size={16} aria-hidden="true"/>Start here</button>
           <button role="menuitem" type="button" onClick={()=>{onDestination(menuNode.id);setMenu(null);}}><FlagCheckered size={16} aria-hidden="true"/>Go here</button>
         </div>}
-        {!research&&building.sample&&floor===0&&<><span className="map-annotation ramp-label" style={{left:'76.5%',top:'48%'}}>Ramp</span><span className="map-annotation" style={{left:'15%',top:'36%'}}>Steps</span></>}
       </div>
     </div>
     <div className="map-footer"><div className="map-legend">
@@ -136,8 +134,8 @@ export function HotelMap({floor,onFloor,route,alternative,onDestination,onStart,
       {focusEdges.length>0&&<span><i className="legend-line focus"/>Current step</span>}
       {closedEdges.length>0&&<span><i className="legend-line closed"/>Closed</span>}
       {research&&<span>Nodes and distances shown</span>}</>}
-    </div><div className="zoom-controls"><button className="icon-button" aria-label="Zoom in" disabled={zoom>=MAX_ZOOM} onClick={()=>zoomBy(.5)}><Plus size={20}/></button><button className="icon-button" aria-label="Zoom out" disabled={zoom<=1} onClick={()=>zoomBy(-.5)}><Minus size={20}/></button><button className="icon-button reset-zoom" aria-label="Reset map zoom" onClick={()=>{pendingCenter.current=null;setZoom(1);scroll.current?.scrollTo(0,0);}}><ArrowsIn size={17}/></button></div></div>
+    </div><div className="zoom-controls"><button className="icon-button" aria-label="Zoom in" disabled={zoom>=MAX_ZOOM} onClick={()=>zoomBy(.5)}><Plus size={18}/></button><button className="icon-button" aria-label="Zoom out" disabled={zoom<=1} onClick={()=>zoomBy(-.5)}><Minus size={18}/></button><button className="icon-button reset-zoom" aria-label="Reset map zoom" onClick={()=>{pendingCenter.current=null;setZoom(1);scroll.current?.scrollTo(0,0);}}><ArrowsIn size={16}/></button></div></div>
     <p className="map-disclosure">{building.sample?'Sample layout and distances.':'Distances use the uploaded plan’s calibrated scale.'} {onStart?'Select a place on the map to start or end there.':'Select your starting point manually.'}</p>
-    {!research&&<div className="facility-directory"><h3>Explore this floor</h3><div className="facility-shortcuts" aria-label="Facilities on this floor">{facilities.filter(n=>n.floor===floor && n.category!=='stairs' && n.category!=='elevator').map(n=><button key={n.id} type="button" onClick={()=>onDestination(n.id)} aria-label={`Choose ${n.name} as destination`}><FacilityIcon category={n.category} size={18}/>{n.name}</button>)}</div></div>}
+    {!research&&<div className="facility-directory"><h3>Explore this floor</h3><div className="facility-shortcuts" aria-label="Facilities on this floor">{facilities.filter(n=>n.floor===floor && n.category!=='stairs' && n.category!=='elevator').map(n=><button key={n.id} type="button" onClick={()=>onDestination(n.id)} aria-label={`Choose ${n.name} as destination`}><FacilityIcon category={n.category} size={16}/>{n.name}</button>)}</div></div>}
   </section>;
 }

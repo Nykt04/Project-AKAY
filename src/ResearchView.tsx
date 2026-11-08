@@ -57,11 +57,11 @@ export function ResearchView({
     <div className="research-content">
       <div className="research-title">
         <div>
-          <h1>Behind the route.</h1>
-          <p>A transparent look at the graph, the algorithm, and its results.</p>
+          <h1>Routing graph &amp; accessibility verification.</h1>
+          <p>Inspect the metric floor-plan graph, Dijkstra path evaluation, and scenario checks.</p>
         </div>
         <button className="text-button" onClick={onBack}>
-          Back to wayfinding <ArrowRight size={18} />
+          Back to wayfinding <ArrowRight size={16} />
         </button>
       </div>
 
@@ -141,15 +141,15 @@ export function ResearchView({
             <h2>Reference test scenarios</h2>
             <p>These fixed sample and synthetic graph tests check the algorithm. They do not validate an uploaded building.</p>
           </div>
-          <button className="primary-button compact" onClick={run} disabled={running}>
-            <Flask size={18} />
+          <button className="primary-button compact" onClick={run} disabled={running} aria-busy={running}>
+            <Flask size={16} />
             {running ? 'Running tests…' : 'Run tests'}
           </button>
         </div>
 
         {!results ? (
           <div className="test-empty">
-            <Flask size={25} weight="light" />
+            <Flask size={22} />
             <p>Run the scenarios to check distances, accessibility and unavailable routes.</p>
           </div>
         ) : (
