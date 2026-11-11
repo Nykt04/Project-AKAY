@@ -5,7 +5,6 @@ import '@fontsource/geist/latin-400.css';
 import '@fontsource/geist/latin-500.css';
 import '@fontsource/geist/latin-600.css';
 import '@fontsource/inria-serif/latin-400.css';
-// import "./styles.css";
 import "./studio.css";
 import "./usability.css";
 import "./setup.css";
