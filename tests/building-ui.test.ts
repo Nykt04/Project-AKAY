@@ -7,6 +7,7 @@ import { FloorPlanStudio } from '../src/FloorPlanStudio';
 import { LocationPicker } from '../src/LocationPicker';
 import { initialSetupStage, setupReadiness } from '../src/setupFlow';
 import { BuildingContext, type Building } from '../src/buildings';
+import { Workspace, SystemLoader } from '../src/Workspace';
 
 const building:Building={id:'office',name:'Civic Center',status:'ready',updatedAt:'2026-10-14T00:00:00.000Z',floors:[{id:7,name:'East wing',short:'E',description:'Uploaded floor plan',image:'data:image/png;base64,fixture',width:900,height:300,metersPerPixel:.1}],graph:{nodes:[{id:'a',name:'Main entry',floor:7,x:50,y:50,facility:true,category:'entrance'},{id:'b',name:'Service desk',floor:7,x:150,y:50,facility:true,category:'reception'}],edges:[{id:'ab',from:'a',to:'b',kind:'corridor',distance:10,accessible:true,traversable:true,reviewed:true}]}};
 test('default Civic Center sample renders 1200x1000 metric floor plan, civic facilities and default route',()=>{
@@ -98,4 +99,18 @@ test('rejected draft connections are explained and inspectable without drawing m
   assert.ok(html.includes('connections are blocked, not usable paths'));
   assert.ok(html.includes('Main entry → Service desk'),'rejected edge stays available in the inspector');
   assert.ok(!html.includes('class="editor-edge blocked'));
+});
+
+
+test('Project AKAY workspace and preloader present general multi-establishment chrome without Civic-only loader floors', () => {
+  const loaderHtml = renderToStaticMarkup(createElement(SystemLoader, { buildingName: '', exiting: false, onSkip: () => {} }));
+  assert.ok(loaderHtml.includes('Project AKAY'));
+  assert.ok(loaderHtml.includes('Accessibility-Aware Indoor Facility Finder'));
+  assert.ok(loaderHtml.includes('Dijkstra Shortest Path'));
+  assert.ok(!loaderHtml.includes('Rescue &amp; fire truck bays'));
+
+  const workspaceHtml = renderToStaticMarkup(createElement(Workspace));
+  assert.ok(workspaceHtml.includes('Project AKAY'));
+  assert.ok(workspaceHtml.includes('optgroup label="Built-in samples"'));
+  assert.ok(workspaceHtml.includes('aria-label="New establishment"'));
 });

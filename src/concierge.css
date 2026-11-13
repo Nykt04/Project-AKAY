@@ -2659,6 +2659,33 @@ details.research-section[open] summary::after {
   border-color: var(--sovereign-emerald);
 }
 
+.workspace-new-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 6px 11px;
+  border-radius: 10px;
+  background: var(--mint-glass);
+  border: 1px solid var(--mint-border);
+  color: var(--sovereign-emerald);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.workspace-new-btn:hover:not(:disabled) {
+  background: var(--sovereign-emerald);
+  border-color: var(--sovereign-emerald);
+  color: #ffffff;
+}
+.workspace-new-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .workspace-tools summary {
   min-height: 36px;
   padding: 7px 13px;
@@ -3222,7 +3249,7 @@ small,
 /* 2. Header & Concentric Segmented Nav (Rules 1, 5, 14, 17) */
 .site-header {
   height: 64px;
-  padding: 0 340px 0 24px;
+  padding: 0 430px 0 24px;
   background: rgba(255, 255, 255, 0.98);
   border-bottom: 1px solid var(--border-subtle);
   gap: 16px;
@@ -3285,6 +3312,8 @@ small,
 .workspace-picker select {
   border-radius: 6px;
   padding: 4px 8px;
+  max-width: 175px;
+  text-overflow: ellipsis;
 }
 
 /* 3. Enlarged Hero Map Layout & Spaced Sidebar Groups (Rules 7, 8, 9, 15, 16) */
@@ -4061,14 +4090,15 @@ main {
 
   .workspace-controls-cluster {
     width: 100%;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 8px;
   }
 
   .workspace-picker {
-    flex: 0 1 auto;
+    flex: 1 1 160px;
     min-width: 0;
-    max-width: calc(100% - 115px);
+    max-width: 100%;
   }
 
   .workspace-picker select {
@@ -4107,6 +4137,7 @@ main {
     padding: 3px 6px;
   }
 
+  .workspace-new-btn,
   .workspace-tools summary {
     min-height: 32px;
     padding: 5px 10px;

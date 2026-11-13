@@ -1,5 +1,6 @@
 {
-  "name": "prototype",
+  "name": "project-akay",
+  "description": "Accessibility-Aware Indoor Facility Finder System Using Dijkstra's Algorithm",
   "version": "0.0.0",
   "private": true,
   "type": "module",
