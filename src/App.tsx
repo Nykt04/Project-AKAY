@@ -26,7 +26,7 @@ import { LocationPicker } from './LocationPicker';
 import { HotelMap } from './HotelMap';
 import { ResearchView } from './ResearchView';
 import { DijkstraPlayback } from './DijkstraPlayback';
-import { useBuilding } from './buildings';
+import { sampleEstParam, sampleMatchesEst, useBuilding } from './buildings';
 import { findRoute } from './routing';
 import { routeDirections, routeFeatures } from './directions';
 import { applyClosures, closureLabel, useClosures } from './closures';
@@ -49,11 +49,11 @@ export function App() {
   const { building, hotel, nodeById, edgeById, facilities, floors, floorName } = useBuilding();
   // A QR code or shared link may preselect locations: ?from=lobby&to=restaurant&mode=shortest
   const [initial] = useState(() => {
-    const params = readRouteParams(), sameBuilding = !params.est || params.est === building.id || (building.sample && params.est === 'sample');
+    const params = readRouteParams(), sameBuilding = !params.est || sampleMatchesEst(params.est, building);
     const valid = (id?: string) => sameBuilding && id && nodeById[id]?.facility ? id : undefined;
     return {
-      start: valid(params.from) ?? (building.sample ? 'main-entrance' : facilities[0]?.id ?? ''),
-      end: valid(params.to) ?? (params.from && valid(params.from) ? '' : building.sample ? 'library' : facilities[1]?.id ?? ''),
+      start: valid(params.from) ?? (nodeById['main-entrance']?.facility ? 'main-entrance' : facilities[0]?.id ?? ''),
+      end: valid(params.to) ?? (params.from && valid(params.from) ? '' : nodeById['library']?.facility ? 'library' : facilities[1]?.id ?? ''),
       mode: params.mode ?? 'accessible' as RouteMode,
       view: params.view ?? 'guest',
     };
@@ -86,7 +86,7 @@ export function App() {
   // New endpoints or mode: leave step mode and show the starting floor.
   useEffect(() => { setStep(null); if (nodeById[start]) setFloor(nodeById[start].floor); }, [start, end, mode, nodeById]);
   useEffect(() => { setStep(s => s !== null && s >= directions.length ? null : s); }, [directions.length]);
-  useEffect(() => { writeRouteParams({ est: building.sample ? undefined : building.id, from: start || undefined, to: end || undefined, mode: mode === 'accessible' ? undefined : mode, view: view === 'guest' ? undefined : view }); }, [building, start, end, mode, view]);
+  useEffect(() => { writeRouteParams({ est: sampleEstParam(building), from: start || undefined, to: end || undefined, mode: mode === 'accessible' ? undefined : mode, view: view === 'guest' ? undefined : view }); }, [building, start, end, mode, view]);
   useEffect(() => {
     if (!routes) return;
     const r = routes[mode];

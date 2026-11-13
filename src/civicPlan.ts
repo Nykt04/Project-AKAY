@@ -34,12 +34,12 @@ export interface DimensionLine {
 
 const coreRooms = (floor: FloorId): RoomBox[] => [
   {
-    id: `lift-${floor}`, floor, name: 'Elevator', subtitle: '2.4 × 2.4 m cab',
+    id: `lift-${floor}`, floor, name: 'Elevator', subtitle: 'BP 344 Accessible · 2.4 × 2.4 m cab',
     x: 4, y: 3, w: 3, h: 10,
     door: { x: 5.5, y: 13, width: 1.2, wall: 'south' },
   },
   {
-    id: `stairs-${floor}`, floor, name: 'Stairs', subtitle: '24 risers × 0.15 m',
+    id: `stairs-${floor}`, floor, name: 'Stairs', subtitle: 'BP 344 Closed Risers · 24 risers × 0.15 m',
     x: 7, y: 3, w: 6, h: 10,
     door: { x: 11.5, y: 13, width: 2.0, wall: 'south' },
   },
@@ -51,7 +51,7 @@ export const civicRooms: RoomBox[] = [
   { id: 'records-room', floor: 0, name: 'Records room', subtitle: 'Restricted archive', x: 19, y: 3, w: 25, h: 10, staffOnly: true },
   { id: 'services-0', floor: 0, name: 'Building services', subtitle: 'Staff only', x: 4, y: 16, w: 14, h: 9, staffOnly: true },
   {
-    id: 'lobby-0', floor: 0, name: 'Entrance lobby', subtitle: 'Info & waiting lounge',
+    id: 'lobby-0', floor: 0, name: 'Entrance lobby', subtitle: 'BP 344 Low Desk · Info & Lounge',
     x: 18, y: 16, w: 16, h: 9,
     door: { x: 26, y: 25, width: 2.0, wall: 'south', glass: true },
   },
@@ -64,7 +64,7 @@ export const civicRooms: RoomBox[] = [
 
   ...coreRooms(1),
   {
-    id: 'restroom-1', floor: 1, name: 'Restroom', subtitle: '6.0 × 10.0 m · PWD cubicle',
+    id: 'restroom-1', floor: 1, name: 'Restroom', subtitle: 'BP 344 · 6.0 × 10.0 m · PWD cubicle',
     x: 13, y: 3, w: 6, h: 10,
     door: { x: 16, y: 13, width: 1.2, wall: 'south' },
   },
@@ -86,27 +86,27 @@ export const civicRooms: RoomBox[] = [
 
   ...coreRooms(2),
   {
-    id: 'restroom-2', floor: 2, name: 'Restroom', subtitle: '6.0 × 10.0 m · PWD cubicle',
+    id: 'restroom-2', floor: 2, name: 'Restroom', subtitle: 'BP 344 · 6.0 × 10.0 m · PWD cubicle',
     x: 13, y: 3, w: 6, h: 10,
     door: { x: 16, y: 13, width: 1.2, wall: 'south' },
   },
   {
-    id: 'hall-1', floor: 2, name: 'Function Hall 1', subtitle: '12.5 × 10.0 m · North-west',
+    id: 'hall-1', floor: 2, name: 'Function Hall 1', subtitle: '12.5 × 10.0 m · BP 344 PWD Seating',
     x: 19, y: 3, w: 12.5, h: 10,
     door: { x: 25, y: 13, width: 1.8, wall: 'south' },
   },
   {
-    id: 'hall-2', floor: 2, name: 'Function Hall 2', subtitle: '12.5 × 10.0 m · North-east',
+    id: 'hall-2', floor: 2, name: 'Function Hall 2', subtitle: '12.5 × 10.0 m · BP 344 PWD Seating',
     x: 31.5, y: 3, w: 12.5, h: 10,
     door: { x: 38, y: 13, width: 1.8, wall: 'south' },
   },
   {
-    id: 'hall-3', floor: 2, name: 'Function Hall 3', subtitle: '20.0 × 9.0 m · South-west',
+    id: 'hall-3', floor: 2, name: 'Function Hall 3', subtitle: '20.0 × 9.0 m · BP 344 PWD Seating',
     x: 4, y: 16, w: 20, h: 9,
     door: { x: 14, y: 16, width: 1.8, wall: 'north' },
   },
   {
-    id: 'hall-4', floor: 2, name: 'Function Hall 4', subtitle: '20.0 × 9.0 m · South-east',
+    id: 'hall-4', floor: 2, name: 'Function Hall 4', subtitle: '20.0 × 9.0 m · BP 344 PWD Seating',
     x: 24, y: 16, w: 20, h: 9,
     door: { x: 34, y: 16, width: 1.8, wall: 'north' },
   },
@@ -228,6 +228,40 @@ function renderDimLine(d: DimensionLine): string {
     + `</g>`;
 }
 
+function renderIsaIcon(cx: number, cy: number, size = 16, color = '#1e5e6f'): string {
+  const r = size / 2;
+  return `<g class="isa-icon">`
+    + `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}"/>`
+    + `<circle cx="${cx}" cy="${cy - r * 0.45}" r="${r * 0.22}" fill="#ffffff"/>`
+    + `<path d="M ${cx - r * 0.1} ${cy - r * 0.15} L ${cx - r * 0.1} ${cy + r * 0.25} L ${cx + r * 0.35} ${cy + r * 0.25} L ${cx + r * 0.5} ${cy + r * 0.6}" fill="none" stroke="#ffffff" stroke-width="${size * 0.1}" stroke-linecap="round" stroke-linejoin="round"/>`
+    + `<path d="M ${cx + r * 0.1} ${cy - r * 0.05} A ${r * 0.45} ${r * 0.45} 0 1 0 ${cx - r * 0.35} ${cy + r * 0.35}" fill="none" stroke="#ffffff" stroke-width="${size * 0.1}" stroke-linecap="round"/>`
+    + `</g>`;
+}
+
+function renderPwdRestroomFixtures(): string {
+  return `<g class="pwd-restroom-fixtures">`
+    + `<rect x="${px(13.2)}" y="${px(6.8)}" width="${px(3.0)}" height="${px(5.9)}" fill="#e4f0ec" stroke="#1e5e6f" stroke-width="1.8"/>`
+    + `<rect x="${px(13.2)}" y="${px(6.8)}" width="${px(3.0)}" height="${px(0.8)}" fill="#1e5e6f" stroke="none"/>`
+    + `<text x="${px(14.7)}" y="${px(7.4)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="8" font-weight="700" fill="#ffffff">BP 344 PWD CUBICLE</text>`
+    + `<circle cx="${px(14.7)}" cy="${px(10.2)}" r="${px(0.75)}" fill="none" stroke="#1e5e6f" stroke-width="1.2" stroke-dasharray="3,3"/>`
+    + `<text x="${px(14.7)}" y="${px(10.3)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#1e5e6f">1.50 m TURN CIRCLE</text>`
+    + `<rect x="${px(13.35)}" y="${px(9.6)}" width="${px(0.65)}" height="${px(0.9)}" rx="6" fill="#ffffff" stroke="#1c4a3e" stroke-width="1.4"/>`
+    + `<circle cx="${px(13.68)}" cy="${px(10.1)}" r="${px(0.2)}" fill="#ffffff" stroke="#1c4a3e" stroke-width="1"/>`
+    + `<line x1="${px(13.3)}" y1="${px(9.3)}" x2="${px(14.4)}" y2="${px(9.3)}" stroke="#8a6421" stroke-width="2.5"/>`
+    + `<line x1="${px(13.3)}" y1="${px(9.3)}" x2="${px(13.3)}" y2="${px(10.6)}" stroke="#8a6421" stroke-width="2.5"/>`
+    + `<line x1="${px(13.4)}" y1="${px(10.8)}" x2="${px(14.3)}" y2="${px(10.8)}" stroke="#8a6421" stroke-width="2" stroke-dasharray="3,2"/>`
+    + `<rect x="${px(15.2)}" y="${px(8.2)}" width="${px(0.75)}" height="${px(0.6)}" rx="3" fill="#ffffff" stroke="#1c4a3e" stroke-width="1.2"/>`
+    + `<circle cx="${px(15.58)}" cy="${px(8.45)}" r="${px(0.12)}" fill="#1c4a3e"/>`
+    + `<path d="M ${px(16.0)} ${px(11.6)} A ${px(0.85)} ${px(0.85)} 0 0 1 ${px(16.85)} ${px(12.45)}" fill="none" stroke="#1e5e6f" stroke-width="1.2" stroke-dasharray="2,2"/>`
+    + renderIsaIcon(px(14.7), px(8.4), 14, '#1e5e6f')
+    + `<circle cx="${px(13.4)}" cy="${px(11.4)}" r="3" fill="#dc2626"/>`
+    + `<text x="${px(13.7)}" y="${px(11.5)}" font-family="system-ui, sans-serif" font-size="6.5" font-weight="700" fill="#dc2626">EMERGENCY</text>`
+    + `<rect x="${px(16.6)}" y="${px(3.5)}" width="${px(2.1)}" height="${px(4.0)}" fill="#f0ede6" stroke="#7b6f5a" stroke-width="1"/>`
+    + `<rect x="${px(16.6)}" y="${px(8.0)}" width="${px(2.1)}" height="${px(4.5)}" fill="#f0ede6" stroke="#7b6f5a" stroke-width="1"/>`
+    + `<text x="${px(17.65)}" y="${px(5.8)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="8" fill="#52605b">STALLS</text>`
+    + `</g>`;
+}
+
 export function renderFloorSvg(floor: FloorId): string {
   const rooms = civicRooms.filter(r => r.floor === floor);
   const dims = civicDimensions.filter(d => d.floor === floor);
@@ -249,8 +283,13 @@ export function renderFloorSvg(floor: FloorId): string {
     + `<rect x="${px(4.3)}" y="${px(7.6)}" width="${px(2.4)}" height="${px(2.4)}" fill="#e5ece9" stroke="#2f3a36" stroke-width="1.6"/>`
     + `<line x1="${px(4.3)}" y1="${px(7.6)}" x2="${px(6.7)}" y2="${px(10.0)}"/>`
     + `<line x1="${px(6.7)}" y1="${px(7.6)}" x2="${px(4.3)}" y2="${px(10.0)}"/>`
+    + `<line x1="${px(4.4)}" y1="${px(7.8)}" x2="${px(4.4)}" y2="${px(9.8)}" stroke="#8a6421" stroke-width="2"/>`
+    + `<line x1="${px(4.4)}" y1="${px(7.8)}" x2="${px(6.6)}" y2="${px(7.8)}" stroke="#8a6421" stroke-width="2"/>`
+    + `<line x1="${px(6.6)}" y1="${px(7.8)}" x2="${px(6.6)}" y2="${px(9.8)}" stroke="#8a6421" stroke-width="2"/>`
+    + renderIsaIcon(px(5.5), px(8.8), 14, '#1e5e6f')
     + Array.from({ length: 10 }, (_, i) => `<line x1="${px(7.4)}" y1="${px(5 + i * 0.5)}" x2="${px(12.6)}" y2="${px(5 + i * 0.5)}"/>`).join('')
     + `<line x1="${px(10)}" y1="${px(4.5)}" x2="${px(10)}" y2="${px(10.5)}" stroke-width="2"/>`
+    + `<rect x="${px(10.5)}" y="${px(12.7)}" width="${px(2.0)}" height="${px(0.3)}" fill="#f9d877" stroke="#b08619" stroke-width="0.6"/>`
     + `</g>`;
 
   const floor0Extras = floor === 0 ? `
@@ -272,10 +311,17 @@ export function renderFloorSvg(floor: FloorId): string {
       ${Array.from({ length: 6 }, (_, i) => `<rect x="${px(25)}" y="${px(31.2 + i * 1.1)}" width="${px(2)}" height="${px(0.65)}"/>`).join('')}
     </g>
     <rect x="${px(32)}" y="${px(37)}" width="${px(2.5)}" height="${px(5)}" fill="#e3eff2" stroke="#1e5e6f" stroke-width="1.8"/>
-    <text x="${px(33.25)}" y="${px(39.7)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9.5" font-weight="700" fill="#1e5e6f">PWD 1</text>
+    <text x="${px(33.25)}" y="${px(39.4)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9.5" font-weight="700" fill="#1e5e6f">PWD 1</text>
+    ${renderIsaIcon(px(33.25), px(41.6), 16, '#1e5e6f')}
+    <text x="${px(33.25)}" y="${px(44.2)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="8" font-weight="600" fill="#1e5e6f">3.7 m BAY</text>
     <rect x="${px(34.5)}" y="${px(37)}" width="${px(1.5)}" height="${px(5)}" fill="url(#staffHatch)" stroke="#1e5e6f" stroke-width="1.2"/>
+    <text x="${px(35.25)}" y="${px(39.5)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" fill="#1e5e6f">1.5m AISLE</text>
     <rect x="${px(36)}" y="${px(37)}" width="${px(2.5)}" height="${px(5)}" fill="#e3eff2" stroke="#1e5e6f" stroke-width="1.8"/>
-    <text x="${px(37.25)}" y="${px(39.7)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9.5" font-weight="700" fill="#1e5e6f">PWD 2</text>
+    <text x="${px(37.25)}" y="${px(39.4)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9.5" font-weight="700" fill="#1e5e6f">PWD 2</text>
+    ${renderIsaIcon(px(37.25), px(41.6), 16, '#1e5e6f')}
+    <text x="${px(37.25)}" y="${px(44.2)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="8" font-weight="600" fill="#1e5e6f">3.7 m BAY</text>
+    <rect x="${px(34.5)}" y="${px(30.6)}" width="${px(1.5)}" height="${px(0.8)}" fill="#dbebe7" stroke="#1c5a49" stroke-width="1"/>
+    <text x="${px(35.25)}" y="${px(31.2)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="6.5" font-weight="700" fill="#1c5a49">DROPPED CURB</text>
     <g>
       <rect x="${px(43)}" y="${px(37)}" width="${px(4.5)}" height="${px(11.5)}" fill="#f8e8e6" stroke="#b42b1d" stroke-width="2.2" stroke-dasharray="8,4"/>
       <text x="${px(45.25)}" y="${px(42.5)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#b42b1d">FIRE TRUCK 1</text>
@@ -295,8 +341,14 @@ export function renderFloorSvg(floor: FloorId): string {
     </g>
     <text x="${px(22.2)}" y="${px(28.9)}" text-anchor="end" font-family="system-ui, sans-serif" font-size="10" font-weight="700" fill="#5a4522">STEPS (4×0.15 m)</text>
     <rect x="${px(30)}" y="${px(25.8)}" width="${px(7.5)}" height="${px(1.6)}" fill="#e1f0ec" stroke="#1c5a49" stroke-width="1.8"/>
+    <line x1="${px(30)}" y1="${px(25.8)}" x2="${px(37.5)}" y2="${px(25.8)}" stroke="#11382e" stroke-width="2.5"/>
+    <line x1="${px(30)}" y1="${px(27.4)}" x2="${px(37.5)}" y2="${px(27.4)}" stroke="#11382e" stroke-width="2.5"/>
+    <line x1="${px(29.7)}" y1="${px(25.95)}" x2="${px(37.8)}" y2="${px(25.95)}" stroke="#8a6421" stroke-width="1.5"/>
+    <line x1="${px(29.7)}" y1="${px(27.25)}" x2="${px(37.8)}" y2="${px(27.25)}" stroke="#8a6421" stroke-width="1.5"/>
     <line x1="${px(37)}" y1="${px(26.6)}" x2="${px(30.6)}" y2="${px(26.6)}" stroke="#1c5a49" stroke-width="1.5"/>
-    <text x="${px(33.75)}" y="${px(27.0)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9.5" font-weight="700" fill="#1c5a49">RAMP 7.5 m · 1:12</text>
+    <text x="${px(33.75)}" y="${px(26.9)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="#1c5a49">BP 344 RAMP 7.5 m · 1:12</text>
+    <rect x="${px(29.5)}" y="${px(25.8)}" width="${px(0.5)}" height="${px(1.6)}" fill="#f9d877" stroke="#b08619" stroke-width="0.8"/>
+    <rect x="${px(37.5)}" y="${px(25.8)}" width="${px(0.5)}" height="${px(1.6)}" fill="#f9d877" stroke="#b08619" stroke-width="0.8"/>
     <g fill="#ede4d1" stroke="#4a4337" stroke-width="1.2">
       <rect x="${px(24.5)}" y="${px(16)}" width="${px(3)}" height="${px(1.4)}"/>
       <line x1="${px(24.5)}" y1="${px(16.45)}" x2="${px(27.5)}" y2="${px(16.45)}"/>
@@ -304,19 +356,32 @@ export function renderFloorSvg(floor: FloorId): string {
     </g>
     <text x="${px(26)}" y="${px(18.2)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9.5" font-weight="700" fill="#5a4522">STEPS (3×0.15 m)</text>
     <rect x="${px(31.6)}" y="${px(16)}" width="${px(1.8)}" height="${px(5.4)}" fill="#e1f0ec" stroke="#1c5a49" stroke-width="1.8"/>
+    <line x1="${px(31.6)}" y1="${px(16)}" x2="${px(31.6)}" y2="${px(21.4)}" stroke="#11382e" stroke-width="2.5"/>
+    <line x1="${px(33.4)}" y1="${px(16)}" x2="${px(33.4)}" y2="${px(21.4)}" stroke="#11382e" stroke-width="2.5"/>
+    <line x1="${px(31.75)}" y1="${px(15.7)}" x2="${px(31.75)}" y2="${px(21.7)}" stroke="#8a6421" stroke-width="1.5"/>
+    <line x1="${px(33.25)}" y1="${px(15.7)}" x2="${px(33.25)}" y2="${px(21.7)}" stroke="#8a6421" stroke-width="1.5"/>
     <text x="${px(32.5)}" y="${px(19.0)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="#1c5a49">RAMP 1:12</text>
+    <rect x="${px(31.6)}" y="${px(15.6)}" width="${px(1.8)}" height="${px(0.4)}" fill="#f9d877" stroke="#b08619" stroke-width="0.8"/>
+    <rect x="${px(31.6)}" y="${px(21.4)}" width="${px(1.8)}" height="${px(0.4)}" fill="#f9d877" stroke="#b08619" stroke-width="0.8"/>
     <line x1="${px(34)}" y1="${px(16)}" x2="${px(34)}" y2="${px(25)}" stroke="#2a7b88" stroke-width="5"/>
     <line x1="${px(34)}" y1="${px(16)}" x2="${px(34)}" y2="${px(25)}" stroke="#d9f2f7" stroke-width="2" stroke-dasharray="8,4"/>
     <text x="${px(34.4)}" y="${px(17.4)}" font-family="system-ui, sans-serif" font-size="9.5" font-weight="700" fill="#2a7b88">GLASS WALL &amp; DOOR</text>
     <rect x="${px(19.2)}" y="${px(22.2)}" width="${px(3.6)}" height="${px(1.4)}" rx="4" fill="#dfd5c0" stroke="#5a4522" stroke-width="1.5"/>
+    <rect x="${px(19.2)}" y="${px(22.2)}" width="${px(1.4)}" height="${px(1.4)}" rx="3" fill="#c9e2de" stroke="#1c5a49" stroke-width="1.5"/>
+    ${renderIsaIcon(px(19.9), px(22.9), 12, '#1c5a49')}
+    <text x="${px(21.6)}" y="${px(24.5)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="8" font-weight="600" fill="#5a4522">0.80 m LOW DESK</text>
     <rect x="${px(19.4)}" y="${px(17.6)}" width="${px(3.2)}" height="${px(1.6)}" rx="3" fill="#e6decb" stroke="#6c6252" stroke-width="1.2"/>
     <rect x="${px(37.2)}" y="${px(18.5)}" width="${px(2.0)}" height="${px(4.5)}" rx="2" fill="#d9eef2" stroke="#2a7b88" stroke-width="1.2"/>
   ` : '';
 
   const floor1Extras = floor === 1 ? `
+    ${renderPwdRestroomFixtures()}
     <g fill="#e6decb" stroke="#7b6f5a" stroke-width="1">
       ${Array.from({ length: 5 }, (_, i) => `<rect x="${px(21 + i * 4.2)}" y="${px(5.2)}" width="${px(2.8)}" height="${px(1.1)}"/>`).join('')}
       ${Array.from({ length: 3 }, (_, i) => `<rect x="${px(22 + i * 6.5)}" y="${px(7.6)}" width="${px(3.6)}" height="${px(1.8)}" rx="2"/>`).join('')}
+      <rect x="${px(22)}" y="${px(10.2)}" width="${px(2.2)}" height="${px(1.2)}" rx="2" fill="#e3eff2" stroke="#1e5e6f" stroke-width="1.2"/>
+      ${renderIsaIcon(px(23.1), px(10.8), 11, '#1e5e6f')}
+      <text x="${px(24.5)}" y="${px(10.9)}" font-family="system-ui, sans-serif" font-size="7" font-weight="700" fill="#1e5e6f">PWD DESK</text>
       <rect x="${px(7)}" y="${px(19.5)}" width="${px(4)}" height="${px(2)}"/>
       <rect x="${px(15)}" y="${px(19.5)}" width="${px(4)}" height="${px(2)}"/>
       <rect x="${px(27)}" y="${px(19.5)}" width="${px(4)}" height="${px(2)}"/>
@@ -325,11 +390,24 @@ export function renderFloorSvg(floor: FloorId): string {
   ` : '';
 
   const floor2Extras = floor === 2 ? `
+    ${renderPwdRestroomFixtures()}
     <g fill="#e6decb" stroke="#7b6f5a" stroke-width="1">
       <rect x="${px(21)}" y="${px(5.5)}" width="${px(8.5)}" height="${px(3.2)}" rx="2"/>
+      <rect x="${px(20.5)}" y="${px(4.2)}" width="${px(1.4)}" height="${px(0.9)}" rx="2" fill="#e3eff2" stroke="#1e5e6f" stroke-width="1.2"/>
+      ${renderIsaIcon(px(21.2), px(4.65), 11, '#1e5e6f')}
+      <text x="${px(22.1)}" y="${px(4.7)}" font-family="system-ui, sans-serif" font-size="7" font-weight="700" fill="#1e5e6f">PWD SEATING</text>
       <rect x="${px(33.5)}" y="${px(5.5)}" width="${px(8.5)}" height="${px(3.2)}" rx="2"/>
+      <rect x="${px(33.0)}" y="${px(4.2)}" width="${px(1.4)}" height="${px(0.9)}" rx="2" fill="#e3eff2" stroke="#1e5e6f" stroke-width="1.2"/>
+      ${renderIsaIcon(px(33.7), px(4.65), 11, '#1e5e6f')}
+      <text x="${px(34.6)}" y="${px(4.7)}" font-family="system-ui, sans-serif" font-size="7" font-weight="700" fill="#1e5e6f">PWD SEATING</text>
       <rect x="${px(7)}" y="${px(19.2)}" width="${px(14)}" height="${px(3.8)}" rx="2"/>
+      <rect x="${px(6.0)}" y="${px(17.2)}" width="${px(1.4)}" height="${px(0.9)}" rx="2" fill="#e3eff2" stroke="#1e5e6f" stroke-width="1.2"/>
+      ${renderIsaIcon(px(6.7), px(17.65), 11, '#1e5e6f')}
+      <text x="${px(7.6)}" y="${px(17.7)}" font-family="system-ui, sans-serif" font-size="7" font-weight="700" fill="#1e5e6f">PWD SEATING</text>
       <rect x="${px(27)}" y="${px(19.2)}" width="${px(14)}" height="${px(3.8)}" rx="2"/>
+      <rect x="${px(26.0)}" y="${px(17.2)}" width="${px(1.4)}" height="${px(0.9)}" rx="2" fill="#e3eff2" stroke="#1e5e6f" stroke-width="1.2"/>
+      ${renderIsaIcon(px(26.7), px(17.65), 11, '#1e5e6f')}
+      <text x="${px(27.6)}" y="${px(17.7)}" font-family="system-ui, sans-serif" font-size="7" font-weight="700" fill="#1e5e6f">PWD SEATING</text>
     </g>
   ` : '';
 

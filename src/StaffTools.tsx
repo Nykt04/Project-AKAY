@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { X } from '@phosphor-icons/react/dist/csr/X';
 import { Printer } from '@phosphor-icons/react/dist/csr/Printer';
 import { Warning } from '@phosphor-icons/react/dist/csr/Warning';
-import { buildingData, type Building } from './buildings';
+import { buildingData, sampleEstParam, type Building } from './buildings';
 import { closableEdges, closureLabel, useClosures } from './closures';
 import { routeUrl } from './urlState';
 import { FacilityIcon } from './FacilityIcon';
@@ -35,7 +35,7 @@ export function StartPointSheet({building,onClose}:{building:Building;onClose:()
   const {facilities,floorName}=useMemo(()=>buildingData(building),[building]);
   const points=facilities.filter(n=>n.category!=='room');
   const [codes,setCodes]=useState<Record<string,string>>({}),[failed,setFailed]=useState(false);
-  const est=building.sample?undefined:building.id;
+  const est=sampleEstParam(building);
   useEffect(()=>{
     let alive=true;
     import('qrcode').then(async QR=>{

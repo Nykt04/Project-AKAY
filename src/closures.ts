@@ -45,7 +45,10 @@ const kindLabel: Record<string, string> = { elevator: 'Elevator', ramp: 'Ramp', 
 export function closureLabel(edge: Edge, nodeById: Record<string, MapNode>, floorName: (id: number) => string) {
   const a = nodeById[edge.from], b = nodeById[edge.to];
   if (!a || !b) return kindLabel[edge.kind] ?? edge.kind;
-  if (a.floor !== b.floor) return `${kindLabel[edge.kind]} · ${floorName(a.floor)} ↔ ${floorName(b.floor)}`;
+  if (a.floor !== b.floor) {
+    const edgeName = a.name === b.name ? a.name : `${a.name} ↔ ${b.name}`;
+    return `${edgeName} · ${floorName(a.floor)} ↔ ${floorName(b.floor)}`;
+  }
   const place = [a, b].find(n => n.facility)?.name ?? `${a.name} ↔ ${b.name}`;
   return `${kindLabel[edge.kind] === 'Stairs' ? 'Steps' : kindLabel[edge.kind]} · ${place} (${floorName(a.floor)})`;
 }

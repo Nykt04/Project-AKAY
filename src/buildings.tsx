@@ -1,7 +1,12 @@
 import { createContext, useContext, useMemo } from 'react';
 import { hotel, floors as sampleFloors } from './hotel';
 import { floorSvgDataUrl, METERS_PER_PIXEL, PLAN_HEIGHT, PLAN_WIDTH } from './civicPlan';
+import { mallBuilding } from './mallPlan';
+import { campusBuilding } from './campusPlan';
 import type { HotelGraph, MapNode, Edge } from './types';
+
+export { mallBuilding } from './mallPlan';
+export { campusBuilding } from './campusPlan';
 
 export interface BuildingFloor {
   id: number; name: string; short: string; description: string;
@@ -15,6 +20,28 @@ export const sampleBuilding: Building = {
   id: 'linden-sample', name: 'Civic Center', sample: true, status: 'ready', updatedAt: '', graph: hotel,
   floors: sampleFloors.map(f => ({ ...f, image: floorSvgDataUrl(f.id), width: PLAN_WIDTH, height: PLAN_HEIGHT, metersPerPixel: METERS_PER_PIXEL })),
 };
+
+export const BUILT_IN_SAMPLES: readonly Building[] = [mallBuilding, campusBuilding];
+const SAMPLE_ALIASES: Record<string, readonly string[]> = {
+  [mallBuilding.id]: ['mall', 'grand-mall'],
+  [campusBuilding.id]: ['campus'],
+};
+
+export function sampleEstParam(building: Building): string | undefined {
+  if (building.id === sampleBuilding.id) return undefined;
+  return SAMPLE_ALIASES[building.id]?.[0] ?? building.id;
+}
+
+export function sampleMatchesEst(est: string | undefined, building: Building): boolean {
+  if (est === building.id) return true;
+  if (building.id === sampleBuilding.id) return !est || est === 'sample';
+  return !!est && (SAMPLE_ALIASES[building.id]?.includes(est) ?? false);
+}
+
+export function resolveBuiltInSample(est: string | undefined, deletedIds: readonly string[]): Building | undefined {
+  if (!est) return undefined;
+  return BUILT_IN_SAMPLES.find(b => !deletedIds.includes(b.id) && sampleMatchesEst(est, b));
+}
 export function buildingData(building: Building) {
   return {
     building, hotel: building.graph, floors: building.floors,
@@ -52,5 +79,14 @@ export async function saveBuilding(building: Building) {
     tx.objectStore('buildings').put(building);
     tx.oncomplete = () => { db.close(); resolve(); };
     tx.onabort = tx.onerror = () => { db.close(); reject(tx.error ?? new Error('Could not save this map.')); };
+  });
+}
+export async function deleteBuilding(id: string) {
+  const db = await openDatabase();
+  return new Promise<void>((resolve,reject) => {
+    const tx = db.transaction('buildings','readwrite');
+    tx.objectStore('buildings').delete(id);
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onabort = tx.onerror = () => { db.close(); reject(tx.error ?? new Error('Could not delete this facility.')); };
   });
 }

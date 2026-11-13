@@ -5,10 +5,11 @@ import { SlidersHorizontal } from '@phosphor-icons/react/dist/csr/SlidersHorizon
 import { Prohibit } from '@phosphor-icons/react/dist/csr/Prohibit';
 import { QrCode } from '@phosphor-icons/react/dist/csr/QrCode';
 import { ArrowRight } from '@phosphor-icons/react/dist/csr/ArrowRight';
+import { Trash } from '@phosphor-icons/react/dist/csr/Trash';
 import { ClosuresDialog, StartPointSheet } from './StaffTools';
 import { readRouteParams } from './urlState';
 import { App } from './App';
-import { BuildingContext, loadBuildings, sampleBuilding, saveBuilding, type Building } from './buildings';
+import { BUILT_IN_SAMPLES, BuildingContext, deleteBuilding, loadBuildings, resolveBuiltInSample, sampleBuilding, saveBuilding, type Building } from './buildings';
 import { freshBuilding } from './buildingEditor';
 
 const FloorPlanStudio = lazy(() => import('./FloorPlanStudio').then(module => ({ default: module.FloorPlanStudio })));
@@ -186,15 +187,31 @@ class StudioBoundary extends Component<{ children: ReactNode }, { failed: boolea
   }
 }
 
+function readDeletedSamples(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem('deleted-sample-facilities') ?? '[]');
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
 export function Workspace() {
-  const [library,setLibrary]=useState<Building[]>([]),[selected,setSelected]=useState(sampleBuilding.id);
-  const [editing,setEditing]=useState(false),[loading,setLoading]=useState(()=>typeof window!=='undefined'&&!!readRouteParams().est&&readRouteParams().est!=='sample'&&readRouteParams().est!==sampleBuilding.id),[error,setError]=useState('');
+  const [deletedSamples, setDeletedSamples] = useState<string[]>(readDeletedSamples);
+  const [library,setLibrary]=useState<Building[]>([]),[selected,setSelected]=useState<string>(() => resolveBuiltInSample(readRouteParams().est, deletedSamples)?.id ?? sampleBuilding.id);
+  const [editing,setEditing]=useState(false),[loading,setLoading]=useState(()=> {
+    const est = typeof window !== 'undefined' ? readRouteParams().est : undefined;
+    return !!est && est !== 'sample' && est !== sampleBuilding.id && !resolveBuiltInSample(est, deletedSamples);
+  }),[error,setError]=useState('');
   const [saving,setSaving]=useState(false),[tool,setTool]=useState<'closures'|'codes'|null>(null);
   const openTool=(next:'closures'|'codes')=>{setTool(next);if(toolsMenu.current)toolsMenu.current.open=false;};
   const toolsMenu=useRef<HTMLDetailsElement>(null);
-  const current=library.find(b=>b.id===selected)??sampleBuilding;
+  const current = BUILT_IN_SAMPLES.find(b => b.id === selected && !deletedSamples.includes(b.id))
+    ?? library.find(b=>b.id===selected)
+    ?? sampleBuilding;
 
-  useEffect(()=>{loadBuildings().then(list=>{setLibrary(list);const est=readRouteParams().est;const shared=list.find(b=>b.id===est&&b.status==='ready');if(shared)setSelected(shared.id);}).catch(()=>setError('Saved establishments could not be loaded. Browser storage must be available to save your plans.')).finally(()=>setLoading(false));},[]);
+  useEffect(()=>{loadBuildings().then(list=>{setLibrary(list);const est=readRouteParams().est;const builtin=resolveBuiltInSample(est,deletedSamples);if(builtin)setSelected(builtin.id);else{const shared=list.find(b=>b.id===est&&b.status==='ready');if(shared)setSelected(shared.id);}}).catch(()=>setError('Saved establishments could not be loaded. Browser storage must be available to save your plans.')).finally(()=>setLoading(false));},[deletedSamples]);
   const onSaved=useCallback((building:Building)=>setLibrary(old=>[...old.filter(b=>b.id!==building.id),building]),[]);
   useEffect(()=>{document.title=`${current.name||'New establishment'} · Indoor wayfinding`;},[current.name]);
   const create=async()=>{
@@ -202,16 +219,105 @@ export function Workspace() {
     try{await saveBuilding(building);onSaved(building);setSelected(building.id);setEditing(true);if(toolsMenu.current)toolsMenu.current.open=false;}
     catch{setError('Could not create a saved establishment. Check that browser storage is available.');}
   };
+
+  const deleteFacility = async (building: Building) => {
+    if (building.id === sampleBuilding.id) return;
+    const name = building.name || 'this establishment';
+    if (!window.confirm(`Are you sure you want to delete the facility "${name}"?`)) return;
+
+    setError('');
+    if (toolsMenu.current) toolsMenu.current.open = false;
+
+    try {
+      if (BUILT_IN_SAMPLES.some(s => s.id === building.id)) {
+        const updated = [...new Set([...deletedSamples, building.id])];
+        setDeletedSamples(updated);
+        try { localStorage.setItem('deleted-sample-facilities', JSON.stringify(updated)); } catch {}
+      } else {
+        await deleteBuilding(building.id);
+        setLibrary(prev => prev.filter(b => b.id !== building.id));
+      }
+      setSelected(sampleBuilding.id);
+      setEditing(false);
+    } catch {
+      setError('Could not delete this facility. Browser storage might be unavailable.');
+    }
+  };
+
   const inStudio = editing && !current.sample;
   return <>
     {loading&&<CivicLoader buildingName={current.name||'Civic Center'} exiting={false} onSkip={()=>setLoading(false)}/>}
     <nav className={`workspace-bar ${inStudio ? 'is-studio-bar' : 'is-integrated-bar'}`} aria-label="Establishment workspace">
       <a className="workspace-brand" href="#workspace-content"><Buildings size={18}/><span>Indoor wayfinding</span></a>
       <div className="workspace-controls-cluster">
-        <label className="workspace-picker"><span>Facility</span><select disabled={loading||saving} value={current.id} onChange={e=>{setSelected(e.target.value);const b=library.find(item=>item.id===e.target.value);setEditing(b?.status==='draft');}}><option value={sampleBuilding.id}>Civic Center</option>{library.map(b=><option key={b.id} value={b.id}>{b.name||'Untitled establishment'}{b.status==='draft'?' (draft)':''}</option>)}</select></label>
+        <label className="workspace-picker">
+          <span>Facility</span>
+          <select
+            disabled={loading||saving}
+            value={current.id}
+            onChange={e=>{
+              const nextId=e.target.value;
+              setSelected(nextId);
+              if(BUILT_IN_SAMPLES.some(s=>s.id===nextId)){
+                setEditing(false);
+              }else{
+                const b=library.find(item=>item.id===nextId);
+                setEditing(b?.status==='draft');
+              }
+            }}
+          >
+            <option value={sampleBuilding.id}>Civic Center</option>
+            {BUILT_IN_SAMPLES.filter(s => !deletedSamples.includes(s.id)).map(s => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+            {library.filter(b=>!BUILT_IN_SAMPLES.some(s=>s.id===b.id)).map(b=><option key={b.id} value={b.id}>{b.name||'Untitled establishment'}{b.status==='draft'?' (draft)':''}</option>)}
+          </select>
+        </label>
+        {current.id !== sampleBuilding.id && (
+          <button
+            type="button"
+            className="workspace-delete-facility-btn"
+            disabled={loading||saving}
+            title={`Delete ${current.name || 'facility'}`}
+            aria-label={`Delete ${current.name || 'facility'}`}
+            onClick={()=>deleteFacility(current)}
+          >
+            <Trash size={14} aria-hidden="true"/>
+            <span>Delete</span>
+          </button>
+        )}
         <details className="workspace-tools" ref={toolsMenu}><summary aria-busy={saving}>{saving?'Saving…':<><SlidersHorizontal size={16} aria-hidden="true"/>Map tools</>}</summary><div className="workspace-actions">
           {!current.sample&&<button className="secondary-button" disabled={saving} onClick={()=>{if(editing&&current.status==='draft')setSelected(sampleBuilding.id);setEditing(v=>!v);if(toolsMenu.current)toolsMenu.current.open=false;}}>{editing?'Exit setup':'Manage floor plans'}</button>}
           <button className="secondary-button" disabled={loading||saving} onClick={create}><Plus size={16}/>New establishment</button>
+          {current.id !== sampleBuilding.id && (
+            <button
+              type="button"
+              className="secondary-button danger-button"
+              disabled={loading||saving}
+              onClick={()=>deleteFacility(current)}
+            >
+              <Trash size={16} aria-hidden="true"/>Delete facility
+            </button>
+          )}
+          {BUILT_IN_SAMPLES.filter(s => deletedSamples.includes(s.id)).map(s => (
+            <button
+              key={s.id}
+              type="button"
+              className="secondary-button"
+              onClick={()=>{
+                const next = deletedSamples.filter(id => id !== s.id);
+                setDeletedSamples(next);
+                try {
+                  if (next.length) localStorage.setItem('deleted-sample-facilities', JSON.stringify(next));
+                  else localStorage.removeItem('deleted-sample-facilities');
+                } catch {}
+                setSelected(s.id);
+                if (toolsMenu.current) toolsMenu.current.open = false;
+              }}
+            >
+              Restore {s.name}
+            </button>
+          ))}
           {!editing&&current.status==='ready'&&<>
             <button className="secondary-button" onClick={()=>openTool('closures')}><Prohibit size={16}/>Service closures</button>
             <button className="secondary-button" onClick={()=>openTool('codes')}><QrCode size={16}/>Start-point QR codes</button>

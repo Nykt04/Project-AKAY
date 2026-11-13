@@ -262,3 +262,45 @@ test('non-finite via coordinates and floating-point drift are handled determinis
   assert.ok(validateGraph(badVia).some(e => e.includes('Invalid via coordinates')));
   assert.equal(findRoute(badVia, 'a', 'c', 'shortest').status, 'invalid');
 });
+
+test('Civic Center complies with BP 344 accessibility standards across all 3 floors', () => {
+  // 1. Core vertical circulation
+  const elevator0 = hotel.nodes.find(n => n.id === 'lift-0')!;
+  assert.ok(elevator0 && elevator0.category === 'elevator');
+  const eleEdge = hotel.edges.find(e => e.id === 'lift-0--lift-1')!;
+  assert.equal(eleEdge.accessible, true);
+  const stairEdge = hotel.edges.find(e => e.id === 'stairs-0--stairs-1')!;
+  assert.equal(stairEdge.accessible, false);
+
+  // 2. Door clear opening widths (BP 344 min 0.80 m)
+  for (const room of civicRooms) {
+    if (room.door) {
+      assert.ok(room.door.width >= 0.80, `Room ${room.id} door width ${room.door.width}m is below BP 344 min 0.80m`);
+    }
+  }
+
+  // 3. Dedicated PWD Restrooms with turning space
+  const rest1 = civicRooms.find(r => r.id === 'restroom-1')!;
+  const rest2 = civicRooms.find(r => r.id === 'restroom-2')!;
+  assert.ok(rest1.subtitle?.includes('BP 344') && rest1.subtitle?.includes('PWD'));
+  assert.ok(rest2.subtitle?.includes('BP 344') && rest2.subtitle?.includes('PWD'));
+
+  // 4. Accessible parking bay and ramp connection
+  const pwdPark = hotel.nodes.find(n => n.id === 'pwd-parking')!;
+  assert.ok(pwdPark && pwdPark.category === 'parking');
+  const outdoorRamp = hotel.edges.find(e => e.id === 'ramp-out-top--ramp-out-bot')!;
+  assert.equal(outdoorRamp.accessible, true);
+  assert.equal(outdoorRamp.kind, 'ramp');
+
+  // 5. Corridors width (3.0 m public corridor, exceeding BP 344 min 1.50 m)
+  const hallDim = civicDimensions.find(d => d.kind === 'corridor' && d.label.includes('3.0 m'))!;
+  assert.ok(hallDim && hallDim.meters >= 1.50);
+
+  // 6. SVG blueprint contains BP 344 visual compliance markers
+  const svg0 = renderFloorSvg(0);
+  const svg1 = renderFloorSvg(1);
+  const svg2 = renderFloorSvg(2);
+  assert.ok(svg0.includes('BP 344') && svg0.includes('isa-icon') && svg0.includes('DROPPED CURB'));
+  assert.ok(svg1.includes('BP 344 PWD CUBICLE') && svg1.includes('1.50 m TURN CIRCLE') && svg1.includes('isa-icon'));
+  assert.ok(svg2.includes('BP 344 PWD CUBICLE') && svg2.includes('PWD SEATING') && svg2.includes('isa-icon'));
+});

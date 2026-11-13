@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "test:sites": "node --test tests/sites-worker.test.mjs",
     "benchmark": "tsx scripts/benchmark-routing.ts",
-    "test": "tsx --test tests/routing.test.ts tests/scan.test.ts tests/building-ui.test.ts tests/aiGraph.test.ts tests/ai-scan-api.test.mjs tests/office-routing.test.ts",
+    "test": "tsx --test tests/routing.test.ts tests/scan.test.ts tests/building-ui.test.ts tests/aiGraph.test.ts tests/ai-scan-api.test.mjs tests/office-routing.test.ts tests/mall-establishment.test.ts tests/campus-establishment.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

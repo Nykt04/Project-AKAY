@@ -3,9 +3,9 @@ import { walkableAreas } from './walkable';
 import { METERS_PER_PIXEL, px } from './civicPlan';
 
 export const floors = [
-  { id: 0, name: '1st floor', short: '1F', description: 'Parking lot, main entrance, info lounge & souvenir shop' },
-  { id: 1, name: '2nd floor', short: '2F', description: 'Public library, administrative offices & restroom' },
-  { id: 2, name: '3rd floor', short: '3F', description: 'Four function halls & restroom' },
+  { id: 0, name: '1st floor', short: '1F', description: 'BP 344 PWD parking, 1:12 ramps, main entrance, info lounge & shop' },
+  { id: 1, name: '2nd floor', short: '2F', description: 'Public library, administrative offices & BP 344 PWD restroom' },
+  { id: 2, name: '3rd floor', short: '3F', description: 'Four function halls (PWD seating) & BP 344 PWD restroom' },
 ] as const;
 
 const nodes: MapNode[] = [];
@@ -75,7 +75,7 @@ for (const floor of [0, 1, 2] as const) {
 
 // 1st floor (id 0): Outdoor government/rescue parking lot, steps, 1:12 ramp, entrance lobby & glass-walled souvenir shop
 n('parking-lot', 'Emergency & gov’t parking', 0, 26, 38, 'parking', [17.5, 45.5]);
-n('pwd-parking', 'Accessible parking (PWD)', 0, 35, 38, 'parking', [36.0, 45.5]);
+n('pwd-parking', 'Accessible parking (BP 344 PWD)', 0, 35, 38, 'parking', [36.0, 45.5]);
 n('steps-out-bot', 'Front steps foot', 0, 26, 30);
 n('sidewalk-pwd-j', 'PWD sidewalk junction', 0, 35, 30);
 n('sidewalk-east-j', 'East sidewalk junction', 0, 37.5, 30);
@@ -86,7 +86,7 @@ n('main-entrance', 'Main entrance', 0, 26, 24, 'entrance', [26.0, 26.2]);
 n('lobby-center-j', 'Main lobby concourse', 0, 26, 21);
 n('lobby-west-j', 'Info & lounge concourse', 0, 21, 21);
 n('lobby-east-j', 'Shop & ramp concourse', 0, 32.5, 21);
-n('info-desk', 'Information & lounge desk', 0, 21, 23, 'reception', [19.5, 22.5]);
+n('info-desk', 'Information & PWD Assistance Desk', 0, 21, 23, 'reception', [19.5, 22.5]);
 n('lounge', 'Waiting lounge', 0, 21, 18.5, 'lounge', [22.5, 17.8]);
 n('souvenir-shop', 'Souvenir shop', 0, 36.5, 21, 'shop', [38.0, 22.5]);
 n('f0-steps-j', 'Central hallway (steps)', 0, 26, 14.5);
@@ -118,7 +118,7 @@ n('f1-offa-j', 'Office A corridor', 1, 14, 14.5);
 n('f1-rest-j', '2nd floor restroom corridor', 1, 16, 14.5);
 n('f1-lib-j', 'Library corridor', 1, 31.5, 14.5);
 n('f1-offb-j', 'Office B corridor', 1, 34, 14.5);
-n('restroom-1', '2nd floor restroom', 1, 16, 10.5, 'restroom', [16, 10.5]);
+n('restroom-1', '2nd floor PWD restroom', 1, 16, 10.5, 'restroom', [16, 10.5]);
 n('library', 'Public library', 1, 31.5, 10, 'library', [31.5, 10.5]);
 n('office-a', 'Office A', 1, 14, 18.5, 'office', [14, 22.5]);
 n('office-b', 'Office B', 1, 34, 18.5, 'office', [34, 22.5]);
@@ -138,7 +138,7 @@ n('f2-rest-j', '3rd floor restroom corridor', 2, 16, 14.5);
 n('f2-hall1-j', 'Hall 1 corridor', 2, 25, 14.5);
 n('f2-hall4-j', 'Hall 4 corridor', 2, 34, 14.5);
 n('f2-hall2-j', 'Hall 2 corridor', 2, 38, 14.5);
-n('restroom-2', '3rd floor restroom', 2, 16, 10.5, 'restroom', [16, 10.5]);
+n('restroom-2', '3rd floor PWD restroom', 2, 16, 10.5, 'restroom', [16, 10.5]);
 n('hall-1', 'Function Hall 1', 2, 25, 10, 'conference', [25.2, 10.5]);
 n('hall-2', 'Function Hall 2', 2, 38, 10, 'conference', [38.0, 10.5]);
 n('hall-3', 'Function Hall 3', 2, 14, 18.5, 'conference', [14, 22.5]);
