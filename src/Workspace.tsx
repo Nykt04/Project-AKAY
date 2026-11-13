@@ -198,6 +198,10 @@ function readDeletedSamples(): string[] {
   }
 }
 
+export function formatDocumentTitle(name: string): string {
+  return `${name.trim() || 'New establishment'} · Project AKAY`;
+}
+
 export function Workspace() {
   const [deletedSamples, setDeletedSamples] = useState<string[]>(readDeletedSamples);
   const [library,setLibrary]=useState<Building[]>([]),[selected,setSelected]=useState<string>(() => resolveBuiltInSample(readRouteParams().est, deletedSamples)?.id ?? sampleBuilding.id);
@@ -215,7 +219,7 @@ export function Workspace() {
   useEffect(()=>{loadBuildings().then(list=>{setLibrary(list);const est=readRouteParams().est;const builtin=resolveBuiltInSample(est,deletedSamples);if(builtin)setSelected(builtin.id);else{const shared=list.find(b=>b.id===est&&b.status==='ready');if(shared)setSelected(shared.id);}}).catch(()=>setError('Saved establishments could not be loaded. Browser storage must be available to save your plans.')).finally(()=>setLoading(false));},[deletedSamples]);
   const onSaved=useCallback((building:Building)=>setLibrary(old=>[...old.filter(b=>b.id!==building.id),building]),[]);
   const customBuildings = library.filter(b => !BUILT_IN_SAMPLES.some(s => s.id === b.id) && b.id !== sampleBuilding.id);
-  useEffect(()=>{document.title=`${current.name||'New establishment'} · Project AKAY`;},[current.name]);
+  useEffect(()=>{document.title=formatDocumentTitle(current.name);},[current.name]);
   const create=async()=>{
     const building=freshBuilding();setError('');
     try{await saveBuilding(building);onSaved(building);setSelected(building.id);setEditing(true);if(toolsMenu.current)toolsMenu.current.open=false;}
@@ -224,7 +228,7 @@ export function Workspace() {
 
   const deleteFacility = async (building: Building) => {
     if (building.id === sampleBuilding.id) return;
-    const name = building.name || 'this establishment';
+    const name = building.name.trim() || 'this establishment';
     if (!window.confirm(`Are you sure you want to delete the facility "${name}"?`)) return;
 
     setError('');
@@ -276,7 +280,7 @@ export function Workspace() {
             </optgroup>
             {customBuildings.length > 0 && (
               <optgroup label="Saved establishments">
-                {customBuildings.map(b=><option key={b.id} value={b.id}>{b.name||'Untitled establishment'}{b.status==='draft'?' (draft)':''}</option>)}
+                {customBuildings.map(b=><option key={b.id} value={b.id}>{b.name.trim()||'Untitled establishment'}{b.status==='draft'?' (draft)':''}</option>)}
               </optgroup>
             )}
           </select>
@@ -297,8 +301,8 @@ export function Workspace() {
             type="button"
             className="workspace-delete-facility-btn"
             disabled={loading||saving}
-            title={`Delete ${current.name || 'facility'}`}
-            aria-label={`Delete ${current.name || 'facility'}`}
+            title={`Delete ${current.name.trim() || 'facility'}`}
+            aria-label={`Delete ${current.name.trim() || 'facility'}`}
             onClick={()=>deleteFacility(current)}
           >
             <Trash size={14} aria-hidden="true"/>
@@ -348,7 +352,7 @@ export function Workspace() {
     {tool==='closures'&&<ClosuresDialog building={current} onClose={()=>setTool(null)}/>}
     {tool==='codes'&&<StartPointSheet building={current} onClose={()=>setTool(null)}/>}
     <div id="workspace-content" tabIndex={-1} className="workspace-stage-ready">
-      {inStudio?<StudioBoundary key={current.id}><Suspense fallback={<SystemLoader buildingName={current.name||'Floor Plan Studio'} exiting={false} onSkip={()=>{}}/>}><FloorPlanStudio initial={current} onSaved={onSaved} onSaving={setSaving} onUse={b=>{onSaved(b);setSaving(false);setEditing(false);}}/></Suspense></StudioBoundary>:
+      {inStudio?<StudioBoundary key={current.id}><Suspense fallback={<SystemLoader buildingName={current.name.trim()||'Floor Plan Studio'} exiting={false} onSkip={()=>{}}/>}><FloorPlanStudio initial={current} onSaved={onSaved} onSaving={setSaving} onUse={b=>{onSaved(b);setSaving(false);setEditing(false);}}/></Suspense></StudioBoundary>:
         <BuildingContext.Provider value={current}><App key={`${current.id}:${current.updatedAt}`}/></BuildingContext.Provider>}
     </div>
   </>;

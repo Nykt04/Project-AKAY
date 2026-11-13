@@ -106,8 +106,9 @@ export function App() {
     if (selected?.status === 'found') { goToStep(0); directionsRef.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); }
     else if (selected) setAnnouncement(selected.message ?? 'No route found.');
   };
+  const venueName = building.name.trim() || 'this establishment';
   const share = async () => {
-    const url = window.location.href, title = `Route to ${nodeById[end]?.name ?? 'destination'} · ${building.name}`;
+    const url = window.location.href, title = `Route to ${nodeById[end]?.name ?? 'destination'} · ${venueName}`;
     try {
       if (navigator.share && window.matchMedia('(pointer: coarse)').matches) await navigator.share({ title, url });
       else { await navigator.clipboard.writeText(url); setCopied(true); setAnnouncement('Route link copied.'); window.setTimeout(() => setCopied(false), 2400); }
@@ -115,8 +116,6 @@ export function App() {
   };
   const changeView = (next: 'guest' | 'research') => { setView(next); window.scrollTo({ top: 0 }); };
   const routeFound = selected?.status === 'found';
-
-  const venueName = building.name.trim() || 'this establishment';
 
   return <>
     <a className="skip-link" href="#main-content">Skip to main content</a>
