@@ -1,5 +1,5 @@
 ---
-name: Linden Hotel Concierge Desk
+name: Project AKAY Indoor Wayfinding System
 description: Warm paper, evergreen and restrained brass for a tactile hotel wayfinding desk.
 colors:
   paper: "#faf7f0"
@@ -76,7 +76,7 @@ components:
     padding: "8px 12px"
 ---
 
-# Design System: Linden Hotel Concierge Desk
+# Design System: Project AKAY Indoor Wayfinding Desk
 
 ## Overview
 

@@ -1,4 +1,4 @@
-# Accessibility-aware Indoor Facility Finder
+# Project AKAY — Accessibility-Aware Indoor Facility Finder System Using Dijkstra’s Algorithm
 <!-- impeccable:product-schema 1 -->
 
 ## Platform
@@ -14,7 +14,7 @@ Visitors with mobility limitations using phones and laptops; establishment staff
 Find a building facility and compare the shortest traversable route with a route that excludes stairs and inaccessible connections, using real Dijkstra computation.
 
 ## Operating Context
-Multiple user-created establishments with uploaded floor plans, plus fictional three-floor Linden Hotel as a sample. Manual start and destination selection. Research view runs predefined checks with independent expectations and records measured computation time.
+Multiple user-created establishments with uploaded floor plans, plus built-in BP 344 sample establishments (Civic Center, Regional Commercial Mall, and Multi-Building Campus). Manual start and destination selection, or quick presets and QR start points. Research view runs predefined checks with independent expectations and records measured computation time.
 
 ## Capabilities and Constraints
 Searchable endpoints, route comparison, floor switching, map zoom, ordered text directions, no-route handling. Optional AI detection of labeled destinations and draft connections, assisted local image scanning, graph editing, scale calibration, access review, multi-floor links, local IndexedDB storage and JSON export. No live positioning, live obstacle detection, bookings, shared accounts or server administration. No claim of real-building accessibility certification.

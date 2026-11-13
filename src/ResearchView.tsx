@@ -9,6 +9,23 @@ import { useBuilding } from './buildings';
 import { runScenarios } from './scenarios';
 import type { RouteResult } from './types';
 
+export function buildResearchExport(
+  buildingName: string,
+  results: ReturnType<typeof runScenarios>
+) {
+  return {
+    filename: 'project-akay-routing-results.json',
+    payload: {
+      system: 'Project AKAY — Accessibility-Aware Indoor Facility Finder System Using Dijkstra’s Algorithm',
+      facility: buildingName.trim() || 'Unnamed establishment',
+      benchmarkSample: 'Civic Center',
+      measuredAt: new Date().toISOString(),
+      note: 'Predefined software tests against the fixed benchmark sample; not participant research results or building certification.',
+      results,
+    },
+  };
+}
+
 export function ResearchView({
   routes,
   onBack,
@@ -30,25 +47,12 @@ export function ResearchView({
 
   const download = () => {
     if (!results) return;
-    const blob = new Blob(
-      [
-        JSON.stringify(
-          {
-            facility: 'Civic Center — demonstration data',
-            measuredAt: new Date().toISOString(),
-            note: 'Predefined software tests; not participant research results or building certification.',
-            results,
-          },
-          null,
-          2
-        ),
-      ],
-      { type: 'application/json' }
-    );
+    const { filename, payload } = buildResearchExport(building.name, results);
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'civic-routing-test-results.json';
+    a.download = filename;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
@@ -58,7 +62,7 @@ export function ResearchView({
       <div className="research-title">
         <div>
           <h1>Routing graph &amp; accessibility verification.</h1>
-          <p>Inspect the metric floor-plan graph, Dijkstra path evaluation, and scenario checks.</p>
+          <p>Project AKAY — Accessibility-Aware Indoor Facility Finder System Using Dijkstra’s Algorithm. Inspect {building.name.trim() || 'this establishment'}’s metric floor-plan graph and scenario checks.</p>
         </div>
         <button className="text-button" onClick={onBack}>
           Back to wayfinding <ArrowRight size={16} />
@@ -237,9 +241,9 @@ export function ResearchView({
 
       <p className="research-disclaimer">
         {building.sample
-          ? 'This is a sample civic facility with manually configured accessibility conditions.'
+          ? 'This is a built-in sample establishment with manually configured accessibility conditions.'
           : 'This uploaded map uses access conditions entered by its author.'}{' '}
-        These checks validate the prototype’s software; they are not participant-study findings or a certification of
+        These checks validate Project AKAY’s routing software; they are not participant-study findings or a certification of
         building accessibility.
       </p>
     </div>

@@ -1,6 +1,6 @@
-# Accessibility-aware Indoor Facility Finder
+# Project AKAY — Accessibility-Aware Indoor Facility Finder System Using Dijkstra’s Algorithm
 
-A React + TypeScript + Vite research prototype for accessible indoor navigation. Real Dijkstra routing compares shortest and accessible routes. Linden Hotel remains a fictional sample; other establishments can create their own maps.
+A React + TypeScript + Vite general-use indoor navigation system (*akay* in Tagalog means to guide or assist; **AKAY** is not an abbreviation). Real Dijkstra routing compares shortest traversable paths against BP 344-aligned step-free routes across built-in sample establishments (`Civic Center`, `Regional Commercial Mall (BP 344)`, `Multi-Building Campus (BP 344)`) and custom user-uploaded floor plans.
 
 ## Use the map studio
 
@@ -29,7 +29,7 @@ Floor images and graphs are saved in IndexedDB in this browser on this origin. L
 
 ## Research demonstration
 
-- Show the Linden Hotel sample to compare stair and elevator/ramp routes.
+- Switch between built-in samples (`Civic Center`, `Regional Commercial Mall (BP 344)`, `Multi-Building Campus (BP 344)`) to compare shortest stair/escalator paths against elevator/ramp routes.
 - Create a second establishment and explain scan → correction → calibration → access review.
 - Switch to the reviewed establishment's guest view and compare routes.
 - Open Research view to inspect the current graph and measured computation time.

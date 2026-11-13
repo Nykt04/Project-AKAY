@@ -8,6 +8,7 @@ import { LocationPicker } from '../src/LocationPicker';
 import { initialSetupStage, setupReadiness } from '../src/setupFlow';
 import { BuildingContext, type Building } from '../src/buildings';
 import { Workspace, SystemLoader } from '../src/Workspace';
+import { ResearchView, buildResearchExport } from '../src/ResearchView';
 
 const building:Building={id:'office',name:'Civic Center',status:'ready',updatedAt:'2026-10-14T00:00:00.000Z',floors:[{id:7,name:'East wing',short:'E',description:'Uploaded floor plan',image:'data:image/png;base64,fixture',width:900,height:300,metersPerPixel:.1}],graph:{nodes:[{id:'a',name:'Main entry',floor:7,x:50,y:50,facility:true,category:'entrance'},{id:'b',name:'Service desk',floor:7,x:150,y:50,facility:true,category:'reception'}],edges:[{id:'ab',from:'a',to:'b',kind:'corridor',distance:10,accessible:true,traversable:true,reviewed:true}]}};
 test('default Civic Center sample renders 1200x1000 metric floor plan, Project AKAY brand and dynamic hero',()=>{
@@ -128,4 +129,20 @@ test('guest UI adapts hero dynamically for arbitrary establishments and falls ba
   const unnamed: Building = { ...building, name: '   ' };
   const unnamedHtml = renderToStaticMarkup(createElement(BuildingContext.Provider, { value: unnamed }, createElement(App)));
   assert.ok(unnamedHtml.includes('Navigate this establishment, step-free or shortest path.'));
+});
+
+
+test('ResearchView labels samples generically and exports Project AKAY metadata for the active facility', () => {
+  const campusSample: Building = { ...building, id: 'multi-building-campus', name: 'Multi-Building Campus (BP 344)', sample: true };
+  const sampleHtml = renderToStaticMarkup(createElement(BuildingContext.Provider, { value: campusSample },
+    createElement(ResearchView, { routes: null, onBack: () => {} })));
+  assert.ok(sampleHtml.includes('Project AKAY'));
+  assert.ok(sampleHtml.includes('built-in sample establishment'));
+  assert.ok(!sampleHtml.includes('sample civic facility'));
+
+  const exported = buildResearchExport('Multi-Building Campus (BP 344)', []);
+  assert.equal(exported.filename, 'project-akay-routing-results.json');
+  assert.equal(exported.payload.system, 'Project AKAY — Accessibility-Aware Indoor Facility Finder System Using Dijkstra’s Algorithm');
+  assert.equal(exported.payload.facility, 'Multi-Building Campus (BP 344)');
+  assert.equal(exported.payload.benchmarkSample, 'Civic Center');
 });
