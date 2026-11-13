@@ -116,11 +116,17 @@ export function App() {
   const changeView = (next: 'guest' | 'research') => { setView(next); window.scrollTo({ top: 0 }); };
   const routeFound = selected?.status === 'found';
 
+  const venueName = building.name.trim() || 'this establishment';
+
   return <>
     <a className="skip-link" href="#main-content">Skip to main content</a>
     <header className="site-header">
       <a className="wordmark" href="#" onClick={event => { event.preventDefault(); changeView('guest'); }}>
-        <span className="hotel-emblem" aria-hidden="true">{building.sample?<Tree size={18} />:<MapTrifold size={18} />}</span><span>{building.name}</span>
+        <span className="hotel-emblem" aria-hidden="true">{building.sample?<Tree size={18} />:<MapTrifold size={18} />}</span>
+        <span className="wordmark-stack">
+          <strong>Project AKAY</strong>
+          <small>{building.name.trim() || 'Indoor Facility Finder'}{building.sample ? ' · Sample' : ''}</small>
+        </span>
       </a>
       <nav aria-label="Main navigation">
         <button className={view === 'guest' ? 'active' : ''} aria-current={view === 'guest' ? 'page' : undefined} onClick={() => changeView('guest')}><MapTrifold size={16} aria-hidden="true" />Find your way</button>
@@ -131,8 +137,8 @@ export function App() {
       {view === 'guest' ? <div className="guest-layout">
         <aside className="route-sidebar" aria-label="Plan your route">
           <div className="concierge-intro">
-            <h1>Navigate the Civic Center, step-free or shortest path.</h1>
-            <p>Compare accessible ramp and elevator routes against direct stair paths in exact meters.</p>
+            <h1>Navigate {venueName}, step-free or shortest path.</h1>
+            <p>Compare step-free ramp and elevator routes against shortest paths in exact meters using Dijkstra’s algorithm.</p>
           </div>
           {closedLabels.length > 0 && <div className="service-notice" role="note"><Warning size={16} aria-hidden="true" /><div><strong>Service notice</strong><ul>{closedLabels.map(label => <li key={label}>{label} — temporarily closed</li>)}</ul><small>Routes below avoid these connections.</small></div></div>}
           

@@ -10,9 +10,11 @@ import { BuildingContext, type Building } from '../src/buildings';
 import { Workspace, SystemLoader } from '../src/Workspace';
 
 const building:Building={id:'office',name:'Civic Center',status:'ready',updatedAt:'2026-10-14T00:00:00.000Z',floors:[{id:7,name:'East wing',short:'E',description:'Uploaded floor plan',image:'data:image/png;base64,fixture',width:900,height:300,metersPerPixel:.1}],graph:{nodes:[{id:'a',name:'Main entry',floor:7,x:50,y:50,facility:true,category:'entrance'},{id:'b',name:'Service desk',floor:7,x:150,y:50,facility:true,category:'reception'}],edges:[{id:'ab',from:'a',to:'b',kind:'corridor',distance:10,accessible:true,traversable:true,reviewed:true}]}};
-test('default Civic Center sample renders 1200x1000 metric floor plan, civic facilities and default route',()=>{
+test('default Civic Center sample renders 1200x1000 metric floor plan, Project AKAY brand and dynamic hero',()=>{
   const html=renderToStaticMarkup(createElement(App));
-  assert.ok(html.includes('Navigate the Civic Center, step-free or shortest path.'));
+  assert.ok(html.includes('Project AKAY'));
+  assert.ok(html.includes('Navigate Civic Center, step-free or shortest path.'));
+  assert.ok(html.includes('Dijkstra'));
   assert.ok(html.includes('Main entrance'));
   assert.ok(html.includes('Public library'));
   assert.ok(html.includes('Souvenir shop'));
@@ -113,4 +115,17 @@ test('Project AKAY workspace and preloader present general multi-establishment c
   assert.ok(workspaceHtml.includes('Project AKAY'));
   assert.ok(workspaceHtml.includes('optgroup label="Built-in samples"'));
   assert.ok(workspaceHtml.includes('aria-label="New establishment"'));
+});
+
+
+test('guest UI adapts hero dynamically for arbitrary establishments and falls back cleanly on blank names', () => {
+  const custom: Building = { ...building, name: 'St. Luke Medical Pavilion' };
+  const customHtml = renderToStaticMarkup(createElement(BuildingContext.Provider, { value: custom }, createElement(App)));
+  assert.ok(customHtml.includes('Project AKAY'));
+  assert.ok(customHtml.includes('Navigate St. Luke Medical Pavilion, step-free or shortest path.'));
+  assert.ok(!customHtml.includes('Civic Center'));
+
+  const unnamed: Building = { ...building, name: '   ' };
+  const unnamedHtml = renderToStaticMarkup(createElement(BuildingContext.Provider, { value: unnamed }, createElement(App)));
+  assert.ok(unnamedHtml.includes('Navigate this establishment, step-free or shortest path.'));
 });
