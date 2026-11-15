@@ -244,7 +244,7 @@ export function App() {
         <HotelMap floor={floor} onFloor={setFloor} route={selected} alternative={step === null ? alternative : null} onDestination={updateEnd} onStart={updateStart}
           focusEdgeIds={activeStep?.edgeIds ?? null} fitKey={`${mode}|${start}|${end}|${step ?? 'all'}|${closed.join(',')}`} closed={closed} />
       </div> : <>
-        <ResearchView routes={routes} onBack={() => changeView('guest')} />
+        <ResearchView routes={routes} mode={mode} onBack={() => changeView('guest')} />
         <DijkstraPlayback graph={activeGraph} start={start} end={end} mode={mode} floor={floor} onFloor={setFloor} route={selected} alternative={alternative} onDestination={updateEnd} />
       </>}
     </main>

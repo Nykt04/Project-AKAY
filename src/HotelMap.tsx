@@ -9,6 +9,7 @@ import { NavigationArrow } from '@phosphor-icons/react/dist/csr/NavigationArrow'
 import { Prohibit } from '@phosphor-icons/react/dist/csr/Prohibit';
 import { FacilityIcon } from './FacilityIcon';
 import { MapTrifold } from '@phosphor-icons/react/dist/csr/MapTrifold';
+import { Tag } from '@phosphor-icons/react/dist/csr/Tag';
 import gsap from 'gsap';
 import { edgeGeometry, type Point } from './geometry';
 import { useBuilding } from './buildings';
@@ -19,6 +20,16 @@ export interface TraceOverlay { current: string; settled: Map<string, number>; f
 
 const MAX_ZOOM = 3, PAD = 70;
 
+export function pickMenuClasses(point: { x: number; y: number; labelX?: number; labelY?: number }, plan: { width: number; height: number }): string {
+  const lx = point.labelX ?? point.x, ly = point.labelY ?? point.y;
+  return [
+    'map-pick-menu',
+    lx / plan.width < 0.18 ? 'align-left' : '',
+    lx / plan.width > 0.82 ? 'align-right' : '',
+    ly / plan.height > 0.72 ? 'flip-above' : '',
+  ].filter(Boolean).join(' ');
+}
+
 export function HotelMap({floor,onFloor,route,alternative,onDestination,onStart,research=false,focusEdgeIds=null,fitKey='',closed=[],trace=null}:{
   floor:FloorId;onFloor:(id:FloorId)=>void;route:RouteResult|null;alternative:RouteResult|null;onDestination:(id:string)=>void;
   onStart?:(id:string)=>void;research?:boolean;focusEdgeIds?:string[]|null;fitKey?:string;closed?:readonly string[];trace?:TraceOverlay|null;
@@ -26,13 +37,14 @@ export function HotelMap({floor,onFloor,route,alternative,onDestination,onStart,
   const { building, edgeById, facilities, floorName, floors, hotel, nodeById } = useBuilding();
   const plan=floors.find(f=>f.id===floor)??floors[0];
   const edgePoints=(edge:Edge)=>edgeGeometry(edge,nodeById).map(p=>p.join(',')).join(' ');
-  const [zoom,setZoom]=useState(1), [failed,setFailed]=useState(false), [menu,setMenu]=useState<string|null>(null);
+  const [zoom,setZoom]=useState(1), [failed,setFailed]=useState(false), [menu,setMenu]=useState<string|null>(null), [showLabels,setShowLabels]=useState(false);
   const [switchingFloor,setSwitchingFloor]=useState(false);
   const svg=useRef<SVGSVGElement>(null), scroll=useRef<HTMLDivElement>(null), pendingCenter=useRef<Point|null>(null), drag=useRef<{x:number;y:number;left:number;top:number;moved:boolean}|null>(null);
   const onThisFloor=(e:Edge)=>nodeById[e.from]?.floor===floor&&nodeById[e.to]?.floor===floor;
   const localEdges=(result:RouteResult|null)=>result?.status==='found'?result.edgeIds.map(id=>edgeById[id]).filter(onThisFloor):[];
   const selectedEdges=localEdges(route), alternativeEdges=localEdges(alternative),start=route?.status==='found'?route.nodeIds[0]:undefined,end=route?.status==='found'?route.nodeIds.at(-1):undefined;
   const focusEdges=(focusEdgeIds??[]).map(id=>edgeById[id]).filter(Boolean);
+  const focusNodes=!trace?[...new Set(focusEdges.filter(e=>!onThisFloor(e)).flatMap(e=>[e.from,e.to]).filter(id=>nodeById[id]?.floor===floor))].map(id=>nodeById[id]).filter(Boolean):[];
   const routeFloors=route?.status==='found'?[...new Set(route.nodeIds.map(id=>nodeById[id].floor))]:[];
   const closedEdges=closed.map(id=>edgeById[id]).filter(Boolean);
   const closedNodes=[...new Set(closedEdges.filter(e=>!onThisFloor(e)).flatMap(e=>[e.from,e.to]).filter(id=>nodeById[id]?.floor===floor))];
@@ -53,9 +65,16 @@ export function HotelMap({floor,onFloor,route,alternative,onDestination,onStart,
   };
   const scrollToCenter=([x,y]:Point,z:number)=>{
     const el=scroll.current;if(!el)return;
-    const scale=el.clientWidth*z/plan.width;
+    const canvas=el.firstElementChild as HTMLElement|null;
+    const cw=canvas?.offsetWidth||el.clientWidth*z;
+    const ch=canvas?.offsetHeight||cw*plan.height/plan.width;
+    const box=(svg.current??canvas)?.getBoundingClientRect();
+    const sc=el.getBoundingClientRect();
+    const ox=box&&box.width?el.scrollLeft+box.left-sc.left:(canvas?.offsetLeft??0);
+    const oy=box&&box.height?el.scrollTop+box.top-sc.top:(canvas?.offsetTop??0);
+    const bw=box&&box.width?box.width:cw, bh=box&&box.height?box.height:ch;
     const behavior:ScrollBehavior=window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';
-    el.scrollTo({left:x*scale-el.clientWidth/2,top:y*scale-el.clientHeight/2,behavior});
+    el.scrollTo({left:ox+(x/plan.width)*bw-el.clientWidth/2,top:oy+(y/plan.height)*bh-el.clientHeight/2,behavior});
   };
   // Zoom to fit the active step when stepping through directions; keep overview at full 1x sheet view.
   useEffect(()=>{
@@ -90,7 +109,7 @@ export function HotelMap({floor,onFloor,route,alternative,onDestination,onStart,
     {routeFloors.length>1&&<div className="floor-notice"><Elevator size={16}/>Route spans {routeFloors.length} floors — use step-by-step to follow each level.</div>}
     {routeFloors.length>0&&!routeFloors.includes(floor)&&<div className="map-floor-hint"><span>The selected route does not pass through this floor.</span><button className="text-button" onClick={()=>onFloor(routeFloors[0])}>Show route floor</button></div>}
     <div className={`map-scroll ${zoom>1?'is-zoomed':''}`} ref={scroll} tabIndex={0} role="region" aria-label="Scrollable floor plan; use zoom controls below" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={endDrag} onPointerLeave={endDrag} onClickCapture={e=>{if(drag.current?.moved){e.stopPropagation();e.preventDefault();}}}>
-      <div className={`map-canvas ${switchingFloor?'floor-switching':''}`} style={{width:`${zoom*100}%`,aspectRatio:`${plan.width}/${plan.height}`}}>
+      <div className={`map-canvas ${switchingFloor?'floor-switching':''} ${!research&&showLabels?'show-all-labels':''}`.trim()} style={{width:`${zoom*100}%`,aspectRatio:`${plan.width}/${plan.height}`}}>
         <img className="floor-image" src={plan.image} alt="" draggable={false} onError={()=>setFailed(true)}/>
         {failed&&<div className="map-error">Map artwork could not load. The text directions remain available.</div>}
         <svg ref={svg} className="map-overlay" viewBox={`0 0 ${plan.width} ${plan.height}`} aria-hidden="true">
@@ -102,6 +121,7 @@ export function HotelMap({floor,onFloor,route,alternative,onDestination,onStart,
           {!trace&&selectedEdges.map(e=><polyline key={e.id} className="selected-path" points={edgePoints(e)}/>)}
           {!trace&&selectedEdges.map(e=><polyline key={`flow-${e.id}`} className="route-flow-line" points={edgePoints(e)}/>)}
           {!trace&&focusEdges.filter(onThisFloor).map(e=><polyline key={`f-${e.id}`} className="focus-path" points={edgePoints(e)}/>)}
+          {focusNodes.map(n=><circle key={`fn-${n.id}`} cx={n.x} cy={n.y} r={12} className="focus-node"/>)}
           {research&&hotel.nodes.filter(n=>n.floor===floor).map(n=>{
             const settled=trace?.settled.get(n.id), frontier=trace?.frontier.get(n.id), isCurrent=trace?.current===n.id;
             const cls=isCurrent?'trace-current':settled!==undefined?'trace-settled':frontier!==undefined?'trace-frontier':'graph-node';
@@ -120,8 +140,33 @@ export function HotelMap({floor,onFloor,route,alternative,onDestination,onStart,
           })}
         </svg>
         {!research&&closedNodes.map(id=><span key={`cn-${id}`} className="map-annotation closed-annotation" style={{left:`${nodeById[id].x/plan.width*100}%`,top:`${(nodeById[id].y+34)/plan.height*100}%`}}><Prohibit size={12} aria-hidden="true"/>Out of service</span>)}
-        {!research&&facilities.filter(n=>n.floor===floor&&(n.category!=='stairs'&&n.category!=='elevator'||n.id===start||n.id===end)).map(n=><button type="button" key={n.id} className={`map-label ${n.id===start||n.id===end?'endpoint-label':''} ${n.id===end?'is-destination-label':''}`} style={{left:`${(n.labelX??n.x)/plan.width*100}%`,top:`${(n.labelY??n.y)/plan.height*100}%`}} onClick={()=>pick(n.id)} aria-haspopup={onStart?'menu':undefined} aria-expanded={onStart?menu===n.id:undefined} aria-label={onStart?`${n.name}, ${floorName(floor)}: set as start or destination`:`Set destination to ${n.name}, ${floorName(floor)}`}><FacilityIcon category={n.category} size={16}/><span>{n.name}</span>{building.sample&&n.id==='records-room'&&<small>Staff only</small>}</button>)}
-        {menuNode&&menuNode.floor===floor&&<div className="map-pick-menu" role="menu" aria-label={`${menuNode.name} options`} style={{left:`${(menuNode.labelX??menuNode.x)/plan.width*100}%`,top:`${(menuNode.labelY??menuNode.y)/plan.height*100}%`}}>
+        {(()=>{
+          const sn=start?nodeById[start]:undefined, en=end?nodeById[end]:undefined;
+          const closeEndpoints=!!(sn&&en&&sn.id!==en.id&&sn.floor===floor&&en.floor===floor&&Math.abs((sn.labelX??sn.x)-(en.labelX??en.x))/plan.width<0.24&&Math.abs((sn.labelY??sn.y)-(en.labelY??en.y))/plan.height<0.14);
+          return !research&&facilities.filter(n=>n.floor===floor&&(n.category!=='stairs'&&n.category!=='elevator'||n.id===start||n.id===end)).map(n=>{
+            const lx=n.labelX??n.x, ly=n.labelY??n.y;
+            const isEndpoint=n.id===start||n.id===end;
+            let flipBelow=ly/plan.height<0.14, alignLeft=lx/plan.width<0.14, alignRight=lx/plan.width>0.86;
+            if(closeEndpoints&&isEndpoint){
+              const other=n.id===start?en!:sn!, olx=other.labelX??other.x, oly=other.labelY??other.y;
+              const canSplitHoriz=Math.abs(lx-olx)/plan.width>=0.04&&Math.min(lx,olx)/plan.width>=0.2&&Math.max(lx,olx)/plan.width<=0.8;
+              if(canSplitHoriz){if(lx<olx)alignRight=true;else alignLeft=true;}
+              else if(Math.max(ly,oly)/plan.height<=0.88){flipBelow=ly>oly||(ly===oly&&n.id===end);}
+            }
+            const cls=[
+              'map-label',
+              isEndpoint?'endpoint-label':'',
+              n.id===end?'is-destination-label':'',
+              menu===n.id?'is-menu-open':'',
+              flipBelow?'flip-below':'',
+              alignLeft?'align-left':'',
+              alignRight?'align-right':'',
+            ].filter(Boolean).join(' ');
+            return <button type="button" key={n.id} className={cls} style={{left:`${lx/plan.width*100}%`,top:`${ly/plan.height*100}%`}} onClick={()=>pick(n.id)} aria-haspopup={onStart?'menu':undefined} aria-expanded={onStart?menu===n.id:undefined} aria-label={onStart?`${n.name}, ${floorName(floor)}: set as start or destination`:`Set destination to ${n.name}, ${floorName(floor)}`}><FacilityIcon category={n.category} size={14}/><span className="map-label-text">{n.name}{building.sample&&n.id==='records-room'&&<small>Staff only</small>}</span></button>;
+          });
+        })()}
+        {menuNode&&menuNode.floor===floor&&<div className={pickMenuClasses(menuNode,plan)} role="menu" aria-label={`${menuNode.name} options`} style={{left:`${(menuNode.labelX??menuNode.x)/plan.width*100}%`,top:`${(menuNode.labelY??menuNode.y)/plan.height*100}%`}}>
+          <div className="map-pick-title" role="presentation">{menuNode.name}</div>
           <button role="menuitem" type="button" autoFocus onClick={()=>{onStart?.(menuNode.id);setMenu(null);}}><NavigationArrow size={16} aria-hidden="true"/>Start here</button>
           <button role="menuitem" type="button" onClick={()=>{onDestination(menuNode.id);setMenu(null);}}><FlagCheckered size={16} aria-hidden="true"/>Go here</button>
         </div>}
@@ -134,7 +179,7 @@ export function HotelMap({floor,onFloor,route,alternative,onDestination,onStart,
       {focusEdges.length>0&&<span><i className="legend-line focus"/>Current step</span>}
       {closedEdges.length>0&&<span><i className="legend-line closed"/>Closed</span>}
       {research&&<span>Nodes and distances shown</span>}</>}
-    </div><div className="zoom-controls"><button className="icon-button" aria-label="Zoom in" disabled={zoom>=MAX_ZOOM} onClick={()=>zoomBy(.5)}><Plus size={18}/></button><button className="icon-button" aria-label="Zoom out" disabled={zoom<=1} onClick={()=>zoomBy(-.5)}><Minus size={18}/></button><button className="icon-button reset-zoom" aria-label="Reset map zoom" onClick={()=>{pendingCenter.current=null;setZoom(1);scroll.current?.scrollTo(0,0);}}><ArrowsIn size={16}/></button></div></div>
+    </div><div className="map-footer-actions">{!research&&<button type="button" className="labels-toggle" aria-pressed={showLabels} aria-label={showLabels?'Hide facility labels on map':'Show all facility labels on map'} onClick={()=>setShowLabels(v=>!v)}><Tag size={15} aria-hidden="true"/><span>Labels</span></button>}<div className="zoom-controls"><button className="icon-button" aria-label="Zoom in" disabled={zoom>=MAX_ZOOM} onClick={()=>zoomBy(.5)}><Plus size={18}/></button><button className="icon-button" aria-label="Zoom out" disabled={zoom<=1} onClick={()=>zoomBy(-.5)}><Minus size={18}/></button><button className="icon-button reset-zoom" aria-label="Reset map zoom" onClick={()=>{pendingCenter.current=null;setZoom(1);scroll.current?.scrollTo(0,0);}}><ArrowsIn size={16}/></button></div></div></div>
     <p className="map-disclosure">{building.sample?'Sample layout and distances.':'Distances use the uploaded plan’s calibrated scale.'} {onStart?'Select a place on the map to start or end there.':'Select your starting point manually.'}</p>
     {!research&&<div className="facility-directory"><h3>Explore this floor</h3><div className="facility-shortcuts" aria-label="Facilities on this floor">{facilities.filter(n=>n.floor===floor && n.category!=='stairs' && n.category!=='elevator').map(n=><button key={n.id} type="button" onClick={()=>onDestination(n.id)} aria-label={`Choose ${n.name} as destination`}><FacilityIcon category={n.category} size={16}/>{n.name}</button>)}</div></div>}
   </section>;

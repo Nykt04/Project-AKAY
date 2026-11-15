@@ -22,10 +22,15 @@ export const sampleBuilding: Building = {
 };
 
 export const BUILT_IN_SAMPLES: readonly Building[] = [mallBuilding, campusBuilding];
+export const ALL_BUILT_IN_SAMPLES: readonly Building[] = [sampleBuilding, ...BUILT_IN_SAMPLES];
 const SAMPLE_ALIASES: Record<string, readonly string[]> = {
   [mallBuilding.id]: ['mall', 'grand-mall'],
   [campusBuilding.id]: ['campus'],
 };
+
+export function isBuiltInSample(id: string): boolean {
+  return ALL_BUILT_IN_SAMPLES.some(b => b.id === id);
+}
 
 export function sampleEstParam(building: Building): string | undefined {
   if (building.id === sampleBuilding.id) return undefined;
@@ -40,7 +45,7 @@ export function sampleMatchesEst(est: string | undefined, building: Building): b
 
 export function resolveBuiltInSample(est: string | undefined, deletedIds: readonly string[]): Building | undefined {
   if (!est) return undefined;
-  return BUILT_IN_SAMPLES.find(b => !deletedIds.includes(b.id) && sampleMatchesEst(est, b));
+  return ALL_BUILT_IN_SAMPLES.find(b => !deletedIds.includes(b.id) && sampleMatchesEst(est, b));
 }
 export function buildingData(building: Building) {
   return {

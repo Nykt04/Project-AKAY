@@ -22,11 +22,6 @@
   border-color: var(--line-strong);
   color: var(--ink);
 }
-.workspace-loading {
-  padding: 40px;
-  color: var(--muted);
-  font-size: 14px;
-}
 
 /* Service notice */
 .service-notice {
@@ -181,6 +176,12 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   opacity: 0.9;
+}
+.focus-node {
+  fill: var(--amber);
+  fill-opacity: 0.22;
+  stroke: var(--amber);
+  stroke-width: 3;
 }
 .closed-edge {
   fill: none;

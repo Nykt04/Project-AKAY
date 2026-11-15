@@ -1305,8 +1305,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   box-shadow: none;
   overflow: auto;
   display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 84px 32px 84px;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -1323,6 +1321,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 
 .map-canvas {
   position: relative;
+  flex-shrink: 0;
   margin: auto;
   background: #ffffff;
   border-radius: 20px;
@@ -1721,8 +1720,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 }
 
 .map-pick-menu {
+  --menu-tx: -50%;
+  --menu-ty: 12px;
   position: absolute;
-  transform: translate(-50%, 12px);
+  transform: translate(var(--menu-tx), var(--menu-ty));
   background: #ffffff;
   border: 1px solid var(--hairline-grid);
   border-radius: var(--radius-md);
@@ -1732,7 +1733,26 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   flex-direction: column;
   gap: 4px;
   z-index: 50;
-  min-width: 140px;
+  min-width: 155px;
+}
+.map-pick-menu.align-left {
+  --menu-tx: 0%;
+}
+.map-pick-menu.align-right {
+  --menu-tx: -100%;
+}
+.map-pick-menu.flip-above {
+  --menu-ty: calc(-100% - 14px);
+}
+.map-pick-title {
+  padding: 4px 10px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--civic-obsidian);
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 2px;
+  max-width: 210px;
 }
 .map-pick-menu button {
   display: flex;
@@ -3910,6 +3930,43 @@ small,
   color: var(--civic-slate-ink);
 }
 
+.map-footer-actions {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.labels-toggle {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-group);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 6px 20px -4px rgba(15, 23, 42, 0.1);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--civic-slate-ink);
+  cursor: pointer;
+  transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.labels-toggle:hover {
+  color: var(--sovereign-emerald);
+  border-color: var(--sovereign-emerald);
+}
+
+.labels-toggle[aria-pressed="true"] {
+  background: var(--sovereign-emerald);
+  border-color: var(--sovereign-emerald);
+  color: #ffffff;
+  box-shadow: 0 6px 16px -4px rgba(6, 78, 59, 0.35);
+}
+
 .zoom-controls {
   border-radius: var(--radius-group);
   padding: 4px;
@@ -3932,33 +3989,84 @@ small,
   color: var(--civic-slate-ink);
 }
 
-/* Optical Facility Pills on Map (Rules 11, 12, 13, 15, 17) */
+/* Optical Facility Pins & On-Demand Popovers on Map (Rules 11, 12, 13, 15, 17) */
 .map-label {
-  transform: translate(-50%, calc(-100% - 8px));
-  background: rgba(255, 255, 255, 0.97);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  --label-tx: -50%;
+  --label-ty: -50%;
+  --label-gap: 8px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  transform: translate(var(--label-tx), var(--label-ty));
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid #64748b;
   border-radius: 999px;
-  padding: 4px 11px 4px 8px;
   display: inline-flex;
   flex-direction: row;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--civic-obsidian);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.16);
   z-index: 10;
-  transition: transform 0.16s var(--ease-spring), border-color 0.16s ease, box-shadow 0.16s ease;
+  transition: transform 0.16s var(--ease-spring), border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+}
+
+.map-label:active:not(:disabled) {
+  transform: translate(var(--label-tx), var(--label-ty));
 }
 
 .map-label svg {
-  width: 15px;
-  height: 15px;
+  width: 13px;
+  height: 13px;
   color: var(--sovereign-emerald);
   flex-shrink: 0;
+}
+
+.map-label-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.map-label:not(.endpoint-label) .map-label-text {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 7px);
+  transform: translateX(-50%);
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid var(--sovereign-emerald);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+  color: var(--civic-obsidian);
+  font-size: 11px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.14s ease;
+}
+
+.map-label:not(.endpoint-label).flip-below .map-label-text {
+  bottom: auto;
+  top: calc(100% + 7px);
+}
+
+.map-label:not(.endpoint-label).align-left .map-label-text {
+  left: 0;
+  transform: none;
+}
+
+.map-label:not(.endpoint-label).align-right .map-label-text {
+  left: auto;
+  right: 0;
+  transform: none;
 }
 
 .map-label small {
@@ -3973,32 +4081,73 @@ small,
 }
 
 .map-label::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -5px;
-  transform: translateX(-50%) rotate(45deg);
-  width: 7px;
-  height: 7px;
-  background: #ffffff;
-  border-right: 1px solid #64748b;
-  border-bottom: 1px solid #64748b;
+  content: none;
 }
 
-.map-label:hover {
-  transform: translate(-50%, calc(-100% - 10px));
+.map-label:not(.endpoint-label):hover,
+.map-label:not(.endpoint-label):focus-visible,
+.map-label:not(.endpoint-label).is-menu-open {
+  transform: translate(var(--label-tx), var(--label-ty)) scale(1.1);
   background: #ffffff;
   border-color: var(--sovereign-emerald);
-  box-shadow: 0 8px 20px rgba(6, 78, 59, 0.22), 0 0 0 2px rgba(16, 185, 129, 0.2);
-  z-index: 22;
+  box-shadow: 0 6px 16px rgba(6, 78, 59, 0.22), 0 0 0 2px rgba(16, 185, 129, 0.2);
+  z-index: 28;
 }
 
-.map-label:hover::after {
-  border-right-color: var(--sovereign-emerald);
-  border-bottom-color: var(--sovereign-emerald);
+.map-label:not(.endpoint-label):hover .map-label-text,
+.map-label:not(.endpoint-label):focus-visible .map-label-text,
+.map-label:not(.endpoint-label).is-menu-open .map-label-text {
+  opacity: 1;
+  visibility: visible;
+}
+
+.map-canvas.show-all-labels .map-label:not(.endpoint-label) {
+  --label-ty: calc(-100% - var(--label-gap));
+  width: auto;
+  height: auto;
+  padding: 3px 9px 3px 7px;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);
+}
+
+.map-canvas.show-all-labels .map-label.flip-below:not(.endpoint-label) {
+  --label-ty: var(--label-gap);
+}
+
+.map-canvas.show-all-labels .map-label.align-left:not(.endpoint-label) {
+  --label-tx: 0%;
+}
+
+.map-canvas.show-all-labels .map-label.align-right:not(.endpoint-label) {
+  --label-tx: -100%;
+}
+
+.map-canvas.show-all-labels .map-label:not(.endpoint-label) .map-label-text {
+  position: static;
+  transform: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  font-size: 10.5px;
+  opacity: 1;
+  visibility: visible;
+}
+
+.map-canvas.show-all-labels .map-label:not(.endpoint-label):hover,
+.map-canvas.show-all-labels .map-label:not(.endpoint-label):focus-visible,
+.map-canvas.show-all-labels .map-label:not(.endpoint-label).is-menu-open {
+  --label-gap: 10px;
+  transform: translate(var(--label-tx), var(--label-ty));
 }
 
 .map-label.endpoint-label {
+  --label-gap: 10px;
+  --label-ty: calc(-100% - var(--label-gap));
+  width: auto;
+  height: auto;
+  padding: 4px 10px 4px 7px;
   background: var(--sovereign-emerald);
   color: #ffffff;
   border-color: #022c22;
@@ -4007,14 +4156,62 @@ small,
   animation: none;
 }
 
+.map-label.endpoint-label.flip-below {
+  --label-ty: var(--label-gap);
+}
+
+.map-label.endpoint-label.align-left {
+  --label-tx: 0%;
+}
+
+.map-label.endpoint-label.align-right {
+  --label-tx: -100%;
+}
+
+.map-label.endpoint-label .map-label-text {
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.map-label.endpoint-label:hover,
+.map-label.endpoint-label:focus-visible,
+.map-label.endpoint-label.is-menu-open {
+  z-index: 29;
+}
+
+.map-label.endpoint-label:hover .map-label-text,
+.map-label.endpoint-label:focus-visible .map-label-text,
+.map-label.endpoint-label.is-menu-open .map-label-text {
+  max-width: none;
+}
+
 .map-label.endpoint-label svg {
   color: #a7f3d0;
 }
 
 .map-label.endpoint-label::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  transform: translateX(-50%) rotate(45deg);
+  width: 7px;
+  height: 7px;
   background: var(--sovereign-emerald);
-  border-right-color: #022c22;
-  border-bottom-color: #022c22;
+  border-right: 1px solid #022c22;
+  border-bottom: 1px solid #022c22;
+}
+
+.map-label.endpoint-label.flip-below::after {
+  bottom: auto;
+  top: -4px;
+  transform: translateX(-50%) rotate(225deg);
+}
+
+.map-label.endpoint-label.align-left::after,
+.map-label.endpoint-label.align-right::after {
+  content: none;
 }
 
 /* Accent colour on active destination pill (Rule 11) */
@@ -4353,10 +4550,9 @@ main {
   }
 
   .map-label {
-    transform: translate(-50%, calc(-100% - 4px));
-    padding: 2px 7px 2px 5px;
-    gap: 3px;
-    font-size: 9.5px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
     border-width: 1px;
     box-shadow: 0 2px 6px rgba(15, 23, 42, 0.16);
   }
@@ -4370,16 +4566,27 @@ main {
     display: none;
   }
 
-  .map-label::after {
-    width: 5px;
-    height: 5px;
-    bottom: -3px;
+  .map-label.endpoint-label,
+  .map-canvas.show-all-labels .map-label:not(.endpoint-label) {
+    --label-gap: 6px;
+    width: auto;
+    height: auto;
+    padding: 2px 7px 2px 5px;
+    gap: 3px;
+    font-size: 9.5px;
+  }
+
+  .map-canvas.show-all-labels .map-label:not(.endpoint-label) .map-label-text {
+    font-size: 9.5px;
   }
 
   .map-label.endpoint-label {
     animation: none;
-    transform: translate(-50%, calc(-100% - 5px));
     box-shadow: 0 4px 10px rgba(6, 78, 59, 0.4), 0 0 0 1.5px #ffffff;
+  }
+
+  .map-label.endpoint-label .map-label-text {
+    max-width: 130px;
   }
 
   .map-footer {
@@ -4406,6 +4613,18 @@ main {
     flex-wrap: wrap;
     flex: 1;
     min-width: 0;
+  }
+
+  .map-footer-actions {
+    gap: 6px;
+  }
+
+  .labels-toggle {
+    height: 36px;
+    padding: 0 9px;
+    font-size: 11px;
+    background: var(--surface-subtle);
+    box-shadow: none;
   }
 
   .zoom-controls {
@@ -4485,6 +4704,14 @@ main {
     font-size: 10px;
     padding: 4px 8px;
     gap: 4px 8px;
+  }
+
+  .labels-toggle {
+    padding: 0 8px;
+  }
+
+  .labels-toggle span {
+    display: none;
   }
 
   .route-choice-copy strong {

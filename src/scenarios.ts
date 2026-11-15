@@ -1,6 +1,6 @@
 import { hotel } from './hotel';
 import { applyClosures } from './closures';
-import { findRoute, validateGraph } from './routing';
+import { findRoute } from './routing';
 import type { HotelGraph, RouteMode, RouteResult } from './types';
 
 export interface Scenario { name: string; start: string; end: string; mode: RouteMode; expected: string; check: (r: RouteResult) => boolean; graph?: HotelGraph; }
@@ -30,4 +30,3 @@ export function routeInvariant(graph: HotelGraph, r: RouteResult) {
   return r.nodeIds.length===r.edgeIds.length+1 && selected.every((e,i) => e && e.traversable && ((e.from===r.nodeIds[i] && e.to===r.nodeIds[i+1]) || (e.to===r.nodeIds[i] && e.from===r.nodeIds[i+1])) && (r.mode==='shortest' || (e.accessible && e.kind!=='stairs'))) && Math.round(selected.reduce((sum,e) => sum + e!.distance,0)*100)/100===r.distance;
 }
 export function runScenarios() { return scenarios.map(s => { const graph=s.graph??hotel; const result=findRoute(graph,s.start,s.end,s.mode); return { name:s.name, expected:s.expected, mode:s.mode, result, passed:s.check(result) && routeInvariant(graph,result) }; }); }
-export const graphIsValid = () => validateGraph(hotel).length===0;

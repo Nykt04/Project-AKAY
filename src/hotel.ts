@@ -156,8 +156,4 @@ e('f2-hall3-j', 'hall-3');
 e('f2-hall4-j', 'hall-4');
 
 export const hotel: HotelGraph = { nodes, edges, walkableAreas };
-export const nodeById = Object.fromEntries(nodes.map(node => [node.id, node])) as Record<string, MapNode>;
-export const edgeById = Object.fromEntries(edges.map(edge => [edge.id, edge])) as Record<string, Edge>;
 export const facilities = nodes.filter(node => node.facility);
-export const floorName = (floor: FloorId) => floors[floor].name;
-export const facilityLabel = (id: string) => nodeById[id] ? `${nodeById[id].name} · ${floorName(nodeById[id].floor)}` : '';

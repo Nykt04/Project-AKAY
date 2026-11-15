@@ -11,13 +11,13 @@ import { type Building, saveBuilding } from './buildings';
 import { activationErrors, calibratedGraph, connectionError, connectionPath, floorRaster, readFloorImage, reviewEdge } from './buildingEditor';
 import { buildClearanceGrid, clearSegment, type ScanResult } from './scan';
 import { edgeGeometry } from './geometry';
-import type { Edge, MapNode, PathKind } from './types';
+import { NODE_CATEGORIES, type Edge, type MapNode, type PathKind } from './types';
 import { scanWithAi } from './aiScan';
 import { traceDraftConnections } from './tracePaths';
 import { initialSetupStage, setupReadiness, setupStages, type SetupStage } from './setupFlow';
 
 type Tool = 'select'|'seed'|'scale'|'add'|'connect'|'move'|'block'|'open';
-const categories:NonNullable<MapNode['category']>[]=['facility','entrance','room','restroom','elevator','stairs','dining','reception','lounge','conference','fitness'];
+const categories = NODE_CATEGORIES;
 const tools: {id:Tool;label:string;help:string}[] = [
   {id:'select',label:'Inspect',help:'Select a node or a connection to inspect and edit it.'},
   {id:'seed',label:'Corridor seed',help:'Local scan only: click inside a clear corridor, then scan. Only its connected walking area will be traced.'},
@@ -220,7 +220,7 @@ export function FloorPlanStudio({initial,onSaved,onUse,onSaving}:{initial:Buildi
       {!floor?<div className="upload-empty"><UploadSimple size={46} weight="light" aria-hidden="true"/><h2>Your floor plan will appear here.</h2><p>Start with one floor. You will add paths and access details in the next steps.</p></div>:<>
         <div className="editor-title"><div><h2>{floor.name}</h2><p>{stage===0?'Uploaded plan':nodes.length+' locations · '+edges.length+' connections'}</p></div>{stage>0&&<div className="editor-zoom"><button aria-label="Zoom editor out" disabled={zoom<=1} onClick={()=>setZoom(v=>Math.max(1,v-.25))}>−</button><span>{Math.round(zoom*100)}%</span><button aria-label="Zoom editor in" disabled={zoom>=3} onClick={()=>setZoom(v=>Math.min(3,v+.25))}>+</button></div>}</div>
         {stage===0?<img className="setup-floor-preview" src={floor.image} alt={'Uploaded plan for '+floor.name}/>:<>
-          {stage===2&&<><div className="editor-toolbar" role="group" aria-label="Editing tool">{tools.filter(t=>['select','add','connect','move'].includes(t.id)).map(t=><button key={t.id} disabled={busy} aria-pressed={tool===t.id} onClick={()=>setTool(t.id)}>{t.label}</button>)}<button disabled={!history.current.length||busy} onClick={()=>{const previous=history.current.pop();if(previous){setDraft({...previous,status:'draft',updatedAt:new Date().toISOString()});setRevision(revision+1);setReviewChecked(false);setErrors([]);}}}>Undo</button></div>
+          {stage===2&&<><div className="editor-toolbar" role="group" aria-label="Editing tool">{tools.filter(t=>['select','add','connect','move'].includes(t.id)).map(t=><button key={t.id} disabled={busy} aria-pressed={tool===t.id} onClick={()=>setTool(t.id)}>{t.label}</button>)}<button disabled={!history.current.length||busy} onClick={()=>{const previous=history.current.pop();if(previous){onSaving(true);const updated:Building={...previous,status:'draft',updatedAt:new Date(Math.max(Date.now(),Date.parse(currentDraft.current.updatedAt)+1)).toISOString()};currentDraft.current=updated;setDraft(updated);if(selected&&!updated.graph.nodes.some(n=>n.id===selected)&&!updated.graph.edges.some(e=>e.id===selected))setSelected('');setRevision(v=>v+1);setReviewChecked(false);setErrors([]);}}}>Undo</button></div>
         <p className="tool-help"><Info size={16}/>{tools.find(t=>t.id===tool)?.help}</p><details className="setup-advanced" onToggle={event=>{if(!event.currentTarget.open&&['block','open','seed'].includes(tool))setTool('select');}}><summary>Path corrections & advanced tools</summary>
             <div className="editor-toolbar">{tools.filter(t=>['block','open','seed'].includes(t.id)&&(t.id!=='seed'||scanMethod==='local')).map(t=><button key={t.id} disabled={busy} aria-pressed={tool===t.id} onClick={()=>setTool(t.id)}>{t.label}</button>)}</div>
             <label className="check-label"><input type="checkbox" checked={showMask} onChange={e=>setShowMask(e.target.checked)}/>Show detected obstacles (red)</label>

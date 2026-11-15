@@ -7,7 +7,7 @@ import { Flask } from '@phosphor-icons/react/dist/csr/Flask';
 import { DownloadSimple } from '@phosphor-icons/react/dist/csr/DownloadSimple';
 import { useBuilding } from './buildings';
 import { runScenarios } from './scenarios';
-import type { RouteResult } from './types';
+import type { RouteMode, RouteResult } from './types';
 
 export function buildResearchExport(
   buildingName: string,
@@ -28,14 +28,19 @@ export function buildResearchExport(
 
 export function ResearchView({
   routes,
+  mode = 'accessible',
   onBack,
 }: {
   routes: { shortest: RouteResult; accessible: RouteResult } | null;
+  mode?: RouteMode;
   onBack: () => void;
 }) {
   const { building, hotel, nodeById, edgeById, floors } = useBuilding();
   const [results, setResults] = useState<ReturnType<typeof runScenarios> | null>(null);
   const [running, setRunning] = useState(false);
+  const inspected = routes
+    ? (routes[mode].edgeIds.length ? routes[mode] : routes[mode === 'accessible' ? 'shortest' : 'accessible'])
+    : null;
 
   const run = () => {
     setRunning(true);
@@ -186,7 +191,7 @@ export function ResearchView({
                       <td>{r.expected}</td>
                       <td>
                         {r.result.status === 'found'
-                          ? `${r.result.distance} m`
+                          ? `${formatDistance(r.result.distance ?? 0)} m`
                           : r.result.status === 'invalid'
                             ? 'Invalid input / graph'
                             : 'No suitable route'}
@@ -206,12 +211,16 @@ export function ResearchView({
         )}
       </section>
 
-      {routes && (
+      {inspected && (
         <details className="research-section">
-          <summary>Inspect the selected route connections</summary>
+          <summary>
+            Inspect the selected route connections ({inspected.mode === 'shortest' ? 'Shortest route' : 'Accessible route'})
+          </summary>
           <div className="table-scroll">
             <table>
-              <caption className="sr-only">Accessible route graph connections</caption>
+              <caption className="sr-only">
+                {inspected.mode === 'shortest' ? 'Shortest' : 'Accessible'} route graph connections
+              </caption>
               <thead>
                 <tr>
                   <th>From</th>
@@ -221,12 +230,12 @@ export function ResearchView({
                 </tr>
               </thead>
               <tbody>
-                {routes.accessible.edgeIds.map((id, i) => {
+                {inspected.edgeIds.map((id, i) => {
                   const e = edgeById[id];
                   return (
                     <tr key={id}>
-                      <td>{nodeById[routes.accessible.nodeIds[i]].name}</td>
-                      <td>{nodeById[routes.accessible.nodeIds[i + 1]].name}</td>
+                      <td>{nodeById[inspected.nodeIds[i]].name}</td>
+                      <td>{nodeById[inspected.nodeIds[i + 1]].name}</td>
                       <td>{e.kind}</td>
                       <td>{formatDistance(e.distance ?? 0)} m</td>
                     </tr>
@@ -235,7 +244,7 @@ export function ResearchView({
               </tbody>
             </table>
           </div>
-          {!routes.accessible.edgeIds.length && <p>No accessible connections in the current result.</p>}
+          {!inspected.edgeIds.length && <p>No route connections in the current result.</p>}
         </details>
       )}
 

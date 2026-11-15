@@ -1,4 +1,4 @@
-import type { Edge, FloorId, HotelGraph, MapNode, PathKind } from './types';
+import type { Edge, FloorId, HotelGraph, MapNode, PathKind, WalkableArea } from './types';
 import type { Building, BuildingFloor } from './buildings';
 
 export const MALL_SCALE = 20; // 20 px per meter
@@ -65,8 +65,8 @@ export const mallRooms: MallRoom[] = [
   { id: 'kiosk-bakery', floor: 0, name: 'Fresh Bakery Kiosk', subtitle: 'Bread & Desserts', x: 44.5, y: 24, w: 3.5, h: 3.5, category: 'dining' },
   { id: 'kiosk-eyewear', floor: 0, name: 'Eyewear Express Kiosk', subtitle: 'Frames & Care', x: 44.5, y: 33, w: 3.5, h: 3.5, category: 'shop' },
   // Restrooms
-  { id: 'f0-pwd-west', floor: 0, name: 'West PWD Restroom', subtitle: 'BP 344 · 2.5m x 2.5m · 1.5m Turn Circle', x: 18, y: 28, w: 3.5, h: 3.5, category: 'restroom', door: { x: 18, y: 30, width: 0.9, wall: 'west' } },
-  { id: 'f0-pwd-east', floor: 0, name: 'East PWD Restroom', subtitle: 'BP 344 · 2.5m x 2.5m · 1.5m Turn Circle', x: 58, y: 28, w: 3.5, h: 3.5, category: 'restroom', door: { x: 61.5, y: 30, width: 0.9, wall: 'east' } },
+  { id: 'f0-pwd-west', floor: 0, name: 'West PWD Restroom', subtitle: 'BP 344 · 2.5m x 2.5m · 1.5m Turn Circle', x: 18, y: 30.4, w: 3.5, h: 3.5, category: 'restroom', door: { x: 19.5, y: 30.4, width: 0.9, wall: 'north' } },
+  { id: 'f0-pwd-east', floor: 0, name: 'East PWD Restroom', subtitle: 'BP 344 · 2.5m x 2.5m · 1.5m Turn Circle', x: 58, y: 30.4, w: 3.5, h: 3.5, category: 'restroom', door: { x: 59.5, y: 30.4, width: 0.9, wall: 'north' } },
 
   // ==================== LEVEL 2: SECOND FLOOR ====================
   // Anchors & Cyberzone
@@ -76,8 +76,8 @@ export const mallRooms: MallRoom[] = [
     x: 6, y: 8, w: 22, h: 18, category: 'shop',
     door: { x: 28, y: 17, width: 3.0, wall: 'east', label: '3.0m Portal' },
   },
-  { id: 'flagship-pc', floor: 1, name: 'Flagship Computers & Laptops', subtitle: '132 m² · Authorized Tech Hub', x: 52, y: 8, w: 11, h: 12, category: 'shop', door: { x: 52, y: 14, width: 2.0, wall: 'west' } },
-  { id: 'flagship-mobile', floor: 1, name: 'Smartphones & Smart Devices', subtitle: '132 m² · Flagship Store', x: 63, y: 8, w: 11, h: 12, category: 'shop', door: { x: 63, y: 14, width: 2.0, wall: 'west' } },
+  { id: 'flagship-pc', floor: 1, name: 'Flagship Computers & Laptops', subtitle: '132 m² · Authorized Tech Hub', x: 52, y: 8, w: 11, h: 12, category: 'shop', door: { x: 57.5, y: 20, width: 2.0, wall: 'south' } },
+  { id: 'flagship-mobile', floor: 1, name: 'Smartphones & Smart Devices', subtitle: '132 m² · Flagship Store', x: 63, y: 8, w: 11, h: 12, category: 'shop', door: { x: 68.5, y: 20, width: 2.0, wall: 'south' } },
   { id: 'esports-arena', floor: 1, name: 'Esports & Gaming Lounge', subtitle: '100 m² · VR & Gaming Gear', x: 52, y: 20, w: 10, h: 6, category: 'shop', door: { x: 57, y: 20, width: 1.5, wall: 'north' } },
   { id: 'audio-boutique', floor: 1, name: 'Audio & Hi-Fi Studio', subtitle: '60 m² · Headphones & Speakers', x: 62, y: 20, w: 6, h: 6, category: 'shop', door: { x: 65, y: 20, width: 1.2, wall: 'north' } },
   { id: 'camera-lab', floor: 1, name: 'Camera & Drone Lab', subtitle: '60 m² · Imaging & Drones', x: 68, y: 20, w: 6, h: 6, category: 'shop', door: { x: 71, y: 20, width: 1.2, wall: 'north' } },
@@ -96,8 +96,8 @@ export const mallRooms: MallRoom[] = [
   { id: 'japanese-novelty', floor: 1, name: 'Japanese Novelty Stalls', subtitle: 'Anime & Gifts', x: 59, y: 46, w: 7, h: 6, category: 'shop', door: { x: 62.5, y: 46, width: 1.2, wall: 'north' } },
   { id: 'organic-tea', floor: 1, name: 'Organic Tea & Herbology', subtitle: 'Specialty Teas & Honey', x: 66, y: 46, w: 8, h: 6, category: 'dining', door: { x: 70, y: 46, width: 1.2, wall: 'north' } },
   // Restrooms L2
-  { id: 'f1-pwd-west', floor: 1, name: 'West PWD Restroom', subtitle: 'BP 344 · 2.5m x 2.5m · 1.5m Turn Circle', x: 18, y: 28, w: 3.5, h: 3.5, category: 'restroom', door: { x: 18, y: 30, width: 0.9, wall: 'west' } },
-  { id: 'f1-pwd-east', floor: 1, name: 'East PWD Restroom', subtitle: 'BP 344 · 2.5m x 2.5m · 1.5m Turn Circle', x: 58, y: 28, w: 3.5, h: 3.5, category: 'restroom', door: { x: 61.5, y: 30, width: 0.9, wall: 'east' } },
+  { id: 'f1-pwd-west', floor: 1, name: 'West PWD Restroom', subtitle: 'BP 344 · 2.5m x 2.5m · 1.5m Turn Circle', x: 18, y: 30.4, w: 3.5, h: 3.5, category: 'restroom', door: { x: 19.5, y: 30.4, width: 0.9, wall: 'north' } },
+  { id: 'f1-pwd-east', floor: 1, name: 'East PWD Restroom', subtitle: 'BP 344 · 2.5m x 2.5m · 1.5m Turn Circle', x: 58, y: 30.4, w: 3.5, h: 3.5, category: 'restroom', door: { x: 59.5, y: 30.4, width: 0.9, wall: 'north' } },
 
   // ==================== LEVEL 3: THIRD FLOOR ====================
   // Cinema Complex
@@ -114,7 +114,7 @@ export const mallRooms: MallRoom[] = [
     door: { x: 68.5, y: 26, width: 2.0, wall: 'south', label: 'Sound Lock Entry' },
   },
   { id: 'box-office', floor: 2, name: 'Cinema Box Office', subtitle: 'Ticketing & BP 344 Accessible Window', x: 53, y: 26.5, w: 4, h: 3.5, category: 'reception' },
-  { id: 'concessions', floor: 2, name: 'Cinema Concessions & Snacks', subtitle: 'Popcorn, Drinks & Candies', x: 59, y: 26.5, w: 14, h: 3.5, category: 'dining' },
+  { id: 'concessions', floor: 2, name: 'Cinema Concessions & Snacks', subtitle: 'Popcorn, Drinks & Candies', x: 59, y: 26.5, w: 6, h: 3.5, category: 'dining' },
 
   // Gourmet Food Hall Stalls
   { id: 'food-asian', floor: 2, name: 'Food Stall: Asian Wok Express', subtitle: 'Stir Fry & Dimsum', x: 6, y: 8, w: 6, h: 5, category: 'dining', door: { x: 11, y: 10, width: 1.2, wall: 'east' } },
@@ -138,8 +138,8 @@ export const mallRooms: MallRoom[] = [
   { id: 'staff-lockers', floor: 2, name: 'Staff Lockers & Facilities', subtitle: 'Rest & Storage Area', x: 63, y: 44, w: 11, h: 8, category: 'office', door: { x: 68.5, y: 44, width: 1.2, wall: 'north' } },
 
   // Restrooms L3
-  { id: 'f2-pwd-west', floor: 2, name: 'West PWD Restroom', subtitle: 'BP 344 · 2.5m x 2.5m · 1.5m Turn Circle', x: 18, y: 28, w: 3.5, h: 3.5, category: 'restroom', door: { x: 18, y: 30, width: 0.9, wall: 'west' } },
-  { id: 'f2-pwd-east', floor: 2, name: 'East PWD Restroom', subtitle: 'BP 344 · 2.5m x 2.5m · 1.5m Turn Circle', x: 58, y: 28, w: 3.5, h: 3.5, category: 'restroom', door: { x: 61.5, y: 30, width: 0.9, wall: 'east' } },
+  { id: 'f2-pwd-west', floor: 2, name: 'West PWD Restroom', subtitle: 'BP 344 · 2.5m x 2.5m · 1.5m Turn Circle', x: 18, y: 30.4, w: 3.5, h: 3.5, category: 'restroom', door: { x: 19.5, y: 30.4, width: 0.9, wall: 'north' } },
+  { id: 'f2-pwd-east', floor: 2, name: 'East PWD Restroom', subtitle: 'BP 344 · 2.5m x 2.5m · 1.5m Turn Circle', x: 58, y: 30.4, w: 3.5, h: 3.5, category: 'restroom', door: { x: 59.5, y: 30.4, width: 0.9, wall: 'north' } },
 ];
 
 // ----------------------------------------------------------------------------
@@ -155,7 +155,7 @@ const mn = (
   floor: FloorId,
   xm: number,
   ym: number,
-  category: MapNode['category'] = 'facility',
+  category?: MapNode['category'],
   doorMeters?: [number, number],
 ) => {
   const node: MapNode = {
@@ -165,13 +165,16 @@ const mn = (
     x: mpx(xm),
     y: mpx(ym),
     category,
-    facility: category !== 'facility' || label.includes('Entrance') || label.includes('Plaza') || label.includes('Parking'),
+    facility: category !== undefined,
     labelX: doorMeters ? mpx(doorMeters[0]) : undefined,
     labelY: doorMeters ? mpx(doorMeters[1]) : undefined,
   };
   mallNodes.push(node);
   mallNodeMap[id] = node;
 };
+
+const mj = (id: string, label: string, floor: FloorId, xm: number, ym: number) =>
+  mn(id, label, floor, xm, ym);
 
 const me = (
   from: string, to: string,
@@ -189,202 +192,288 @@ const me = (
   mallEdges.push({ id: `${from}--${to}`, from, to, distance, kind, accessible, traversable, via });
 };
 
-// 1. Core vertical circulation on every floor
-for (const fl of [0, 1, 2] as const) {
-  // Scenic Lift
-  mn(`lift-scenic-${fl}`, 'Scenic Glass Elevator', fl, 46, 30, 'elevator', [46, 28]);
-  mn(`f${fl}-scenic-j`, 'Scenic lift landing', fl, 44, 30);
-  me(`lift-scenic-${fl}`, `f${fl}-scenic-j`);
+const chain = (ids: string[], kind: PathKind = 'corridor', accessible = true) => {
+  for (let i = 1; i < ids.length; i++) me(ids[i - 1], ids[i], kind, accessible);
+};
 
-  // Escalators
-  mn(`escalator-${fl}`, 'Criss-Cross Escalator Bank', fl, 40, 28, 'stairs', [40, 26]);
-  mn(`f${fl}-escala-j`, 'Escalator landing', fl, 40, 31);
-  me(`escalator-${fl}`, `f${fl}-escala-j`);
-
-  // West Core
-  mn(`lift-west-${fl}`, 'West Passenger Elevator', fl, 8.5, 28, 'elevator', [8.5, 26]);
-  mn(`stairs-west-${fl}`, 'West Fire Stairwell', fl, 12.5, 28, 'stairs', [12.5, 26]);
-  mn(`ramp-west-${fl}`, 'West Accessible Ramp', fl, 8.5, 32, 'facility', [8.5, 34]);
-  mn(`f${fl}-west-core-j`, 'West circulation foyer', fl, 11, 30);
-  me(`lift-west-${fl}`, `f${fl}-west-core-j`);
-  me(`stairs-west-${fl}`, `f${fl}-west-core-j`);
-  me(`ramp-west-${fl}`, `f${fl}-west-core-j`, 'ramp', true);
-
-  // East Core
-  mn(`lift-east-${fl}`, 'East Service & Passenger Lift', fl, 71.5, 28, 'elevator', [71.5, 26]);
-  mn(`stairs-east-${fl}`, 'East Fire Stairwell', fl, 67.5, 28, 'stairs', [67.5, 26]);
-  mn(`ramp-east-${fl}`, 'East Accessible Ramp', fl, 71.5, 32, 'facility', [71.5, 34]);
-  mn(`f${fl}-east-core-j`, 'East circulation foyer', fl, 69, 30);
-  me(`lift-east-${fl}`, `f${fl}-east-core-j`);
-  me(`stairs-east-${fl}`, `f${fl}-east-core-j`);
-  me(`ramp-east-${fl}`, `f${fl}-east-core-j`, 'ramp', true);
-
-  // Inter-floor linkages
-  if (fl > 0) {
-    const prev = (fl - 1) as FloorId;
-    me(`lift-scenic-${prev}`, `lift-scenic-${fl}`, 'elevator', true, 6.0);
-    me(`lift-west-${prev}`, `lift-west-${fl}`, 'elevator', true, 6.0);
-    me(`lift-east-${prev}`, `lift-east-${fl}`, 'elevator', true, 6.0);
-    me(`escalator-${prev}`, `escalator-${fl}`, 'stairs', false, 7.5);
-    me(`stairs-west-${prev}`, `stairs-west-${fl}`, 'stairs', false, 8.0);
-    me(`stairs-east-${prev}`, `stairs-east-${fl}`, 'stairs', false, 8.0);
-  }
-
-  // Cross-concourse spinal connections
-  mn(`f${fl}-atrium-center-j`, 'Grand Atrium concourse', fl, 40, 30);
-  mn(`f${fl}-spine-west-j`, 'West concourse junction', fl, 28, 30);
-  mn(`f${fl}-spine-east-j`, 'East concourse junction', fl, 52, 30);
-
-  me(`f${fl}-atrium-center-j`, `f${fl}-escala-j`);
-  me(`f${fl}-atrium-center-j`, `f${fl}-scenic-j`);
-  me(`f${fl}-atrium-center-j`, `f${fl}-spine-west-j`);
-  me(`f${fl}-atrium-center-j`, `f${fl}-spine-east-j`);
-  me(`f${fl}-spine-west-j`, `f${fl}-west-core-j`);
-  me(`f${fl}-spine-east-j`, `f${fl}-east-core-j`);
-
-  // Secondary North and South main shopping aisles
-  mn(`f${fl}-north-aisle-w`, 'North-west shopping aisle', fl, 28, 20);
-  mn(`f${fl}-north-aisle-e`, 'North-east shopping aisle', fl, 52, 20);
-  mn(`f${fl}-south-aisle-w`, 'South-west shopping aisle', fl, 28, 42);
-  mn(`f${fl}-south-aisle-e`, 'South-east shopping aisle', fl, 52, 42);
-
-  me(`f${fl}-spine-west-j`, `f${fl}-north-aisle-w`);
-  me(`f${fl}-spine-west-j`, `f${fl}-south-aisle-w`);
-  me(`f${fl}-spine-east-j`, `f${fl}-north-aisle-e`);
-  me(`f${fl}-spine-east-j`, `f${fl}-south-aisle-e`);
-
-  // PWD Restrooms per floor
-  mn(`pwd-toilet-west-${fl}`, 'West PWD Restroom', fl, 18, 30, 'restroom');
-  mn(`pwd-toilet-east-${fl}`, 'East PWD Restroom', fl, 61.5, 30, 'restroom');
-  me(`f${fl}-west-core-j`, `pwd-toilet-west-${fl}`);
-  me(`f${fl}-east-core-j`, `pwd-toilet-east-${fl}`);
-}
-
-// ---------------- LEVEL 1 (GROUND FLOOR) SPECIFIC NODES & CONNECTIONS ----------------
-mn('main-entrance-north', 'North Main Plaza Entrance', 0, 40, 6, 'entrance', [40, 4]);
-mn('entrance-south', 'South Plaza Promenade Entrance', 0, 40, 54, 'entrance', [40, 56]);
+// ---------------- LEVEL 1 (GROUND FLOOR) ENTRANCES FIRST FOR DEFAULT ROUTE ----------------
+mn('main-entrance-north', 'North Main Plaza Entrance', 0, 40, 2, 'entrance', [40, 2]);
+mn('entrance-south', 'South Plaza Promenade Entrance', 0, 40, 56, 'entrance', [40, 56]);
 mn('entrance-west', 'West Garden Entrance', 0, 4, 30, 'entrance', [2, 30]);
-mn('entrance-east', 'East Transit Hub Entrance', 0, 76, 30, 'entrance', [78, 30]);
+mn('entrance-east', 'East Transit Hub Entrance', 0, 76, 29, 'entrance', [78, 29]);
 
-mn('north-steps-j', 'North entrance steps', 0, 42, 4);
-mn('north-ramp-top', 'North accessible ramp top', 0, 37, 6);
-mn('north-ramp-bot', 'North accessible ramp foot', 0, 34, 2);
-mn('north-plaza-walkway', 'North exterior plaza walkway', 0, 40, 2);
+mj('north-steps-top', 'North entrance steps top', 0, 42, 2);
+mj('north-steps-bot', 'North entrance steps bottom', 0, 42, 6);
+mj('north-ramp-bot', 'North accessible ramp foot', 0, 35, 2);
+mj('north-ramp-top', 'North accessible ramp top', 0, 35, 6);
+mj('f0-north-foyer', 'North Main Entrance foyer', 0, 40, 6);
 
 mn('pwd-parking-1', 'Accessible Parking Bay 1 (PWD)', 0, 20, 56, 'parking');
 mn('pwd-parking-2', 'Accessible Parking Bay 2 (PWD)', 0, 24, 56, 'parking');
 mn('pwd-loading-zone', 'PWD Passenger Drop-off Zone', 0, 78, 30, 'parking');
 
-me('north-plaza-walkway', 'north-steps-j', 'stairs', false);
-me('north-steps-j', 'main-entrance-north', 'stairs', false);
-me('north-plaza-walkway', 'north-ramp-bot');
+me('main-entrance-north', 'north-steps-top');
+me('north-steps-top', 'north-steps-bot', 'stairs', false, 4.0);
+me('north-steps-bot', 'f0-north-foyer');
+me('main-entrance-north', 'north-ramp-bot');
 me('north-ramp-bot', 'north-ramp-top', 'ramp', true, 5.0);
-me('north-ramp-top', 'main-entrance-north');
-me('main-entrance-north', 'f0-atrium-center-j');
+me('north-ramp-top', 'f0-north-foyer');
 
-me('pwd-parking-1', 'entrance-south');
-me('pwd-parking-2', 'entrance-south');
-me('entrance-south', 'f0-atrium-center-j');
+// Core vertical circulation & concourse ring on every floor
+for (const fl of [0, 1, 2] as const) {
+  // Scenic Lift (west tactile door at x=44.5)
+  mn(`lift-scenic-${fl}`, 'Scenic Glass Elevator', fl, 46, 30, 'elevator', [46, 28]);
+  mj(`f${fl}-scenic-j`, 'Scenic lift landing', fl, 44, 30);
+  me(`lift-scenic-${fl}`, `f${fl}-scenic-j`);
 
-me('entrance-west', 'f0-west-core-j');
-me('pwd-loading-zone', 'entrance-east');
-me('entrance-east', 'f0-east-core-j');
+  // Escalators (accessed via north/south skybridge spine at x=39)
+  mn(`escalator-${fl}`, 'Criss-Cross Escalator Bank', fl, 40, 28, 'stairs', [40, 26]);
+  // Landing sits on the tactile pad north of the bank; the spur enters through the bank's north side, never across it.
+  mj(`f${fl}-bridge-28`, 'Atrium escalator landing', fl, 39, 25);
+  me(`escalator-${fl}`, `f${fl}-bridge-28`, 'corridor', true, undefined, [[40, 25]]);
 
-// Ground floor facilities
-mn('supermarket-node', 'Anchor Supermarket & Hypermarket', 0, 52, 17, 'shop');
-mn('dept-store-1-node', 'Anchor Department Store L1', 0, 28, 17, 'shop');
-mn('concierge-node', 'Customer Concierge & PWD Desk', 0, 40, 34, 'reception');
-mn('pharmacy-node', 'Pharmacy & Drugstore', 0, 9, 36, 'shop');
-mn('optical-node', 'Optical & Eyewear Clinic', 0, 14.5, 36, 'shop');
-mn('jewelry-node', 'Jewelry & Luxury Timepieces', 0, 19.5, 36, 'shop');
-mn('cosmetics-node', 'Cosmetics Boutique', 0, 25, 36, 'shop');
-mn('bank-node', 'Bank Branch & ATM Hub', 0, 9.5, 46, 'shop');
-mn('fashion-node', 'Fast Fashion Boutique', 0, 16.5, 46, 'shop');
-mn('footwear-node', 'Footwear & Leather Goods', 0, 24, 46, 'shop');
+  // West Core + West PWD Restroom along y=30
+  mn(`lift-west-${fl}`, 'West Passenger Elevator', fl, 8.5, 28, 'elevator', [8.5, 26]);
+  mn(`stairs-west-${fl}`, 'West Fire Stairwell', fl, 12.5, 28, 'stairs', [12.5, 26]);
+  mn(`pwd-toilet-west-${fl}`, 'West PWD Restroom', fl, 19.5, 32, 'restroom');
+  mj(`f${fl}-wcore-8_5`, 'West elevator foyer', fl, 8.5, 30);
+  mj(`f${fl}-wcore-12_5`, 'West stairwell foyer', fl, 12.5, 30);
+  mj(`f${fl}-wcore-19_5`, 'West restroom corridor', fl, 19.5, 30);
+  mj(`f${fl}-spine-west-j`, 'West concourse junction', fl, 29, 30);
+  me(`lift-west-${fl}`, `f${fl}-wcore-8_5`);
+  me(`stairs-west-${fl}`, `f${fl}-wcore-12_5`);
+  me(`pwd-toilet-west-${fl}`, `f${fl}-wcore-19_5`);
+  chain([`f${fl}-wcore-8_5`, `f${fl}-wcore-12_5`, `f${fl}-wcore-19_5`, `f${fl}-spine-west-j`]);
 
-mn('bookstore-node', 'Bookstore & Stationery', 0, 55.5, 36, 'shop');
-mn('deli-node', 'Gourmet Delicatessen', 0, 62.5, 36, 'dining');
-mn('electronics-node', 'Electronics Center', 0, 70, 36, 'shop');
-mn('convenience-node', 'Convenience Mart 24/7', 0, 55.5, 46, 'shop');
-mn('luggage-node', 'Luggage & Travel Gear', 0, 62.5, 46, 'shop');
-mn('homeware-node', 'Homeware & Living', 0, 70, 46, 'shop');
+  // East Core + East PWD Restroom along y=30
+  mn(`pwd-toilet-east-${fl}`, 'East PWD Restroom', fl, 59.5, 32, 'restroom');
+  mn(`stairs-east-${fl}`, 'East Fire Stairwell', fl, 67.5, 28, 'stairs', [67.5, 26]);
+  mn(`lift-east-${fl}`, 'East Service & Passenger Lift', fl, 71.5, 28, 'elevator', [71.5, 26]);
+  mj(`f${fl}-spine-east-j`, 'East concourse junction', fl, 51, 30);
+  mj(`f${fl}-ecore-59_5`, 'East restroom corridor', fl, 59.5, 30);
+  mj(`f${fl}-ecore-67_5`, 'East stairwell foyer', fl, 67.5, 30);
+  mj(`f${fl}-ecore-71_5`, 'East elevator foyer', fl, 71.5, 30);
+  me(`pwd-toilet-east-${fl}`, `f${fl}-ecore-59_5`);
+  me(`stairs-east-${fl}`, `f${fl}-ecore-67_5`);
+  me(`lift-east-${fl}`, `f${fl}-ecore-71_5`);
+  chain([`f${fl}-spine-east-j`, `f${fl}-ecore-59_5`, `f${fl}-ecore-67_5`, `f${fl}-ecore-71_5`]);
 
+  // Inter-floor linkages (aligned (x, y) coordinates across floors)
+  if (fl > 0) {
+    const prev = (fl - 1) as FloorId;
+    me(`lift-scenic-${prev}`, `lift-scenic-${fl}`, 'elevator', true, 6.0);
+    me(`lift-west-${prev}`, `lift-west-${fl}`, 'elevator', true, 6.0);
+    me(`lift-east-${prev}`, `lift-east-${fl}`, 'elevator', true, 6.0);
+    me(`escalator-${prev}`, `escalator-${fl}`, 'stairs', false, 4.5);
+    me(`stairs-west-${prev}`, `stairs-west-${fl}`, 'stairs', false, 8.0);
+    me(`stairs-east-${prev}`, `stairs-east-${fl}`, 'stairs', false, 8.0);
+  }
+
+  // North Atrium Promenade (y=21) & South Atrium Promenade (y=39)
+  mj(`f${fl}-prom-n-29`, 'North-west atrium corner', fl, 29, 21);
+  mj(`f${fl}-prom-n-39`, 'North atrium bridgehead', fl, 39, 21);
+  mj(`f${fl}-prom-n-44`, 'North scenic lift balcony', fl, 44, 21);
+  mj(`f${fl}-prom-n-51`, 'North-east atrium corner', fl, 51, 21);
+
+  mj(`f${fl}-prom-s-29`, 'South-west atrium corner', fl, 29, 39);
+  mj(`f${fl}-prom-s-51`, 'South-east atrium corner', fl, 51, 39);
+
+  me(`f${fl}-bridge-28`, `f${fl}-prom-n-39`);
+  if (fl === 0) {
+    // Ground floor: bakery kiosk at (44.5..48, 24..27.5) uses west aisle junction at (44, 25)
+    mj('f0-bakery-j', 'Bakery kiosk corridor', 0, 44, 25);
+    chain(['f0-prom-n-44', 'f0-bakery-j', 'f0-scenic-j']);
+
+    // Ground floor north promenade includes kiosk-coffee (34) and North Entrance spine (40)
+    mj('f0-prom-n-34', 'Coffee kiosk junction', 0, 34, 21);
+    mj('f0-prom-n-36', 'West atrium lane (north)', 0, 36.25, 21);
+    mj('f0-prom-n-40', 'North entrance concourse', 0, 40, 21);
+    chain(['f0-prom-n-29', 'f0-prom-n-34', 'f0-prom-n-36', 'f0-prom-n-39', 'f0-prom-n-40', 'f0-prom-n-44', 'f0-prom-n-51']);
+    me('f0-north-foyer', 'f0-prom-n-40');
+
+    // Ground floor south promenade routes around Concierge desk (x=37..43, y=34..37) via x=36.25
+    mj('f0-prom-s-34', 'Gadget kiosk junction', 0, 34, 39);
+    mj('f0-prom-s-36', 'West concierge bypass', 0, 36.25, 39);
+    mj('f0-prom-s-40', 'Concierge front promenade', 0, 40, 39);
+    mj('f0-prom-s-46', 'Eyewear kiosk junction', 0, 46, 39);
+    mj('f0-atr-32-w', 'Atrium mid-aisle', 0, 36.25, 32);
+    chain(['f0-prom-s-29', 'f0-prom-s-34', 'f0-prom-s-36', 'f0-prom-s-40', 'f0-prom-s-46', 'f0-prom-s-51']);
+    // North-south atrium lane at x=36.25 runs between the kiosks (x<=35.5) and the escalator bank (x>=37)
+    chain(['f0-prom-n-36', 'f0-atr-32-w', 'f0-prom-s-36']);
+  } else {
+    me(`f${fl}-prom-n-44`, `f${fl}-scenic-j`);
+    chain([`f${fl}-prom-n-29`, `f${fl}-prom-n-39`, `f${fl}-prom-n-44`, `f${fl}-prom-n-51`]);
+    if (fl === 1) {
+      // 2F Skybridge connects north and south sides over the atrium void at x=39
+      mj('f1-prom-s-39', 'Skybridge south landing', 1, 39, 39);
+      chain(['f1-prom-s-29', 'f1-prom-s-39', 'f1-prom-s-51']);
+    } else {
+      // 3F has no skybridge across the open atrium void; connect south promenade continuously below y=38
+      me('f2-prom-s-29', 'f2-prom-s-51');
+    }
+  }
+}
+
+// Ground floor exterior promenade, West/East entrances & drop-off
+mj('f0-west-ramp', 'West accessible entrance ramp', 0, 7, 30);
+me('entrance-west', 'f0-west-ramp', 'ramp', true);
+me('f0-west-ramp', 'f0-wcore-8_5');
+
+mj('f0-east-ramp', 'East accessible entrance ramp', 0, 73, 30);
+mj('f0-east-foyer', 'East entrance foyer', 0, 76, 30);
+me('f0-ecore-71_5', 'f0-east-ramp', 'ramp', true);
+me('f0-east-ramp', 'f0-east-foyer');
+me('f0-east-foyer', 'pwd-loading-zone');
+me('entrance-east', 'f0-east-foyer');
+
+mj('f0-sprom-20', 'South PWD bay 1 aisle', 0, 20, 54);
+mj('f0-sprom-24', 'South PWD bay 2 aisle', 0, 24, 54);
+mj('f0-sprom-40', 'South entrance promenade', 0, 40, 54);
+me('pwd-parking-1', 'f0-sprom-20');
+me('pwd-parking-2', 'f0-sprom-24');
+me('entrance-south', 'f0-sprom-40');
+chain(['f0-sprom-20', 'f0-sprom-24', 'f0-sprom-40', 'f0-prom-s-40']);
+
+// Ground floor facilities & orthogonal doorway aisles
+mn('supermarket-node', 'Anchor Supermarket & Hypermarket', 0, 53, 17, 'shop');
+mn('dept-store-1-node', 'Anchor Department Store L1', 0, 27, 17, 'shop');
+mn('concierge-node', 'Customer Concierge & PWD Desk', 0, 40, 35, 'reception');
 mn('kiosk-coffee-node', 'Artisan Coffee Kiosk', 0, 34, 25, 'dining');
-mn('kiosk-gadgets-node', 'Mobile Gadgets Kiosk', 0, 34, 33, 'shop');
-mn('kiosk-bakery-node', 'Fresh Bakery Kiosk', 0, 44, 25, 'dining');
-mn('kiosk-eyewear-node', 'Eyewear Express Kiosk', 0, 44, 33, 'shop');
+mn('kiosk-gadgets-node', 'Mobile Gadgets Kiosk', 0, 34, 35, 'shop');
+mn('kiosk-bakery-node', 'Fresh Bakery Kiosk', 0, 46, 25, 'dining');
+mn('kiosk-eyewear-node', 'Eyewear Express Kiosk', 0, 46, 35, 'shop');
 
-me('f0-north-aisle-e', 'supermarket-node');
-me('f0-north-aisle-w', 'dept-store-1-node');
-me('f0-atrium-center-j', 'concierge-node');
-me('f0-atrium-center-j', 'kiosk-coffee-node');
-me('f0-atrium-center-j', 'kiosk-gadgets-node');
-me('f0-atrium-center-j', 'kiosk-bakery-node');
-me('f0-atrium-center-j', 'kiosk-eyewear-node');
+mn('pharmacy-node', 'Pharmacy & Drugstore', 0, 9, 37, 'shop');
+mn('optical-node', 'Optical & Eyewear Clinic', 0, 14.5, 37, 'shop');
+mn('jewelry-node', 'Jewelry & Luxury Timepieces', 0, 19.5, 37, 'shop');
+mn('cosmetics-node', 'Cosmetics Boutique', 0, 25, 37, 'shop');
+mn('bank-node', 'Bank Branch & ATM Hub', 0, 9.5, 47, 'shop');
+mn('fashion-node', 'Fast Fashion Boutique', 0, 16.5, 47, 'shop');
+mn('footwear-node', 'Footwear & Leather Goods', 0, 24, 47, 'shop');
 
-me('f0-south-aisle-w', 'pharmacy-node');
-me('f0-south-aisle-w', 'optical-node');
-me('f0-south-aisle-w', 'jewelry-node');
-me('f0-south-aisle-w', 'cosmetics-node');
-me('f0-south-aisle-w', 'bank-node');
-me('f0-south-aisle-w', 'fashion-node');
-me('f0-south-aisle-w', 'footwear-node');
+mn('bookstore-node', 'Bookstore & Stationery', 0, 55.5, 37, 'shop');
+mn('deli-node', 'Gourmet Delicatessen', 0, 62.5, 37, 'dining');
+mn('electronics-node', 'Electronics Center', 0, 70, 37, 'shop');
+mn('convenience-node', 'Convenience Mart 24/7', 0, 55.5, 47, 'shop');
+mn('luggage-node', 'Luggage & Travel Gear', 0, 62.5, 47, 'shop');
+mn('homeware-node', 'Homeware & Living', 0, 70, 47, 'shop');
 
-me('f0-south-aisle-e', 'bookstore-node');
-me('f0-south-aisle-e', 'deli-node');
-me('f0-south-aisle-e', 'electronics-node');
-me('f0-south-aisle-e', 'convenience-node');
-me('f0-south-aisle-e', 'luggage-node');
-me('f0-south-aisle-e', 'homeware-node');
+mj('f0-wconc-17', 'West anchor concourse', 0, 29, 17);
+mj('f0-wconc-35', 'South-west upper retail aisle', 0, 29, 35);
+mj('f0-wconc-45', 'South-west lower retail aisle', 0, 29, 45);
+chain(['f0-wconc-17', 'f0-prom-n-29', 'f0-spine-west-j', 'f0-wconc-35', 'f0-prom-s-29', 'f0-wconc-45']);
 
-// ---------------- LEVEL 2 SPECIFIC NODES & CONNECTIONS ----------------
-mn('dept-store-2-node', 'Anchor Department Store L2', 1, 28, 17, 'shop');
-mn('flagship-pc-node', 'Flagship Computers & Laptops', 1, 52, 14, 'shop');
-mn('flagship-mobile-node', 'Smartphones & Smart Devices', 1, 63, 14, 'shop');
-mn('esports-node', 'Esports & Gaming Lounge', 1, 57, 20, 'shop');
-mn('audio-node', 'Audio & Hi-Fi Studio', 1, 65, 20, 'shop');
-mn('camera-node', 'Camera & Drone Lab', 1, 71, 20, 'shop');
+mj('f0-econc-17', 'East anchor concourse', 0, 51, 17);
+mj('f0-econc-35', 'South-east upper retail aisle', 0, 51, 35);
+mj('f0-econc-45', 'South-east lower retail aisle', 0, 51, 45);
+chain(['f0-econc-17', 'f0-prom-n-51', 'f0-spine-east-j', 'f0-econc-35', 'f0-prom-s-51', 'f0-econc-45']);
 
-mn('sporting-node', 'Sporting Goods & Athleisure', 1, 10, 36, 'shop');
-mn('denim-node', 'Denim & Casual Studio', 1, 17.5, 36, 'shop');
-mn('kids-node', 'Kids Apparel & Toys', 1, 24.5, 36, 'shop');
-mn('lingerie-node', 'Lingerie Studio', 1, 9, 46, 'shop');
-mn('sneakers-node', 'Sneaker Vault', 1, 15, 46, 'shop');
-mn('spa-node', 'Beauty Salon & Day Spa', 1, 23, 46, 'shop');
+me('dept-store-1-node', 'f0-wconc-17');
+me('supermarket-node', 'f0-econc-17');
+me('concierge-node', 'f0-prom-s-40');
+me('kiosk-coffee-node', 'f0-prom-n-34');
+me('kiosk-bakery-node', 'f0-bakery-j');
+me('kiosk-gadgets-node', 'f0-prom-s-34');
+me('kiosk-eyewear-node', 'f0-prom-s-46');
 
-mn('dental-node', 'Dental & Health Clinic', 1, 55.5, 36, 'shop');
-mn('homefurnish-node', 'Home Furnishings Studio', 1, 62.5, 36, 'shop');
-mn('musicvinyl-node', 'Music & Vinyl Emporium', 1, 70, 36, 'shop');
-mn('crafthub-node', 'Art & Craft Hub', 1, 55.5, 46, 'shop');
-mn('japanesenovelty-node', 'Japanese Novelty Stalls', 1, 62.5, 46, 'shop');
-mn('organictea-node', 'Organic Tea & Herbology', 1, 70, 46, 'dining');
+for (const [id, xm] of [['pharmacy', 9], ['optical', 14.5], ['jewelry', 19.5], ['cosmetics', 25]] as const) {
+  mj(`f0-j-${id}`, `${id} doorway`, 0, xm, 35);
+  me(`${id}-node`, `f0-j-${id}`);
+}
+chain(['f0-j-pharmacy', 'f0-j-optical', 'f0-j-jewelry', 'f0-j-cosmetics', 'f0-wconc-35']);
 
-me('f1-north-aisle-w', 'dept-store-2-node');
-me('f1-north-aisle-e', 'flagship-pc-node');
-me('f1-north-aisle-e', 'flagship-mobile-node');
-me('f1-north-aisle-e', 'esports-node');
-me('f1-north-aisle-e', 'audio-node');
-me('f1-north-aisle-e', 'camera-node');
+for (const [id, xm] of [['bank', 9.5], ['fashion', 16.5], ['footwear', 24]] as const) {
+  mj(`f0-j-${id}`, `${id} doorway`, 0, xm, 45);
+  me(`${id}-node`, `f0-j-${id}`);
+}
+chain(['f0-j-bank', 'f0-j-fashion', 'f0-j-footwear', 'f0-wconc-45']);
 
-me('f1-south-aisle-w', 'sporting-node');
-me('f1-south-aisle-w', 'denim-node');
-me('f1-south-aisle-w', 'kids-node');
-me('f1-south-aisle-w', 'lingerie-node');
-me('f1-south-aisle-w', 'sneakers-node');
-me('f1-south-aisle-w', 'spa-node');
+for (const [id, xm] of [['bookstore', 55.5], ['deli', 62.5], ['electronics', 70]] as const) {
+  mj(`f0-j-${id}`, `${id} doorway`, 0, xm, 35);
+  me(`${id}-node`, `f0-j-${id}`);
+}
+chain(['f0-econc-35', 'f0-j-bookstore', 'f0-j-deli', 'f0-j-electronics']);
 
-me('f1-south-aisle-e', 'dental-node');
-me('f1-south-aisle-e', 'homefurnish-node');
-me('f1-south-aisle-e', 'musicvinyl-node');
-me('f1-south-aisle-e', 'crafthub-node');
-me('f1-south-aisle-e', 'japanesenovelty-node');
-me('f1-south-aisle-e', 'organictea-node');
+for (const [id, xm] of [['convenience', 55.5], ['luggage', 62.5], ['homeware', 70]] as const) {
+  mj(`f0-j-${id}`, `${id} doorway`, 0, xm, 45);
+  me(`${id}-node`, `f0-j-${id}`);
+}
+chain(['f0-econc-45', 'f0-j-convenience', 'f0-j-luggage', 'f0-j-homeware']);
 
-// ---------------- LEVEL 3 SPECIFIC NODES & CONNECTIONS ----------------
+// ---------------- LEVEL 2 (SECOND FLOOR) FACILITIES & ORTHOGONAL AISLES ----------------
+mn('dept-store-2-node', 'Anchor Department Store L2', 1, 27, 17, 'shop');
+mn('flagship-pc-node', 'Flagship Computers & Laptops', 1, 57.5, 18, 'shop');
+mn('flagship-mobile-node', 'Smartphones & Smart Devices', 1, 68.5, 18, 'shop');
+mn('esports-node', 'Esports & Gaming Lounge', 1, 57, 22, 'shop');
+mn('audio-node', 'Audio & Hi-Fi Studio', 1, 65, 22, 'shop');
+mn('camera-node', 'Camera & Drone Lab', 1, 71, 22, 'shop');
+
+mn('sporting-node', 'Sporting Goods & Athleisure', 1, 10, 37, 'shop');
+mn('denim-node', 'Denim & Casual Studio', 1, 17.5, 37, 'shop');
+mn('kids-node', 'Kids Apparel & Toys', 1, 24.5, 37, 'shop');
+mn('lingerie-node', 'Lingerie Studio', 1, 9, 47, 'shop');
+mn('sneakers-node', 'Sneaker Vault', 1, 15, 47, 'shop');
+mn('spa-node', 'Beauty Salon & Day Spa', 1, 23, 47, 'shop');
+
+mn('dental-node', 'Dental & Health Clinic', 1, 55.5, 37, 'shop');
+mn('homefurnish-node', 'Home Furnishings Studio', 1, 62.5, 37, 'shop');
+mn('musicvinyl-node', 'Music & Vinyl Emporium', 1, 70, 37, 'shop');
+mn('crafthub-node', 'Art & Craft Hub', 1, 55.5, 47, 'shop');
+mn('japanesenovelty-node', 'Japanese Novelty Stalls', 1, 62.5, 47, 'shop');
+mn('organictea-node', 'Organic Tea & Herbology', 1, 70, 47, 'dining');
+
+mj('f1-wconc-17', 'West anchor L2 concourse', 1, 29, 17);
+mj('f1-wconc-35', 'South-west L2 upper aisle', 1, 29, 35);
+mj('f1-wconc-45', 'South-west L2 lower aisle', 1, 29, 45);
+chain(['f1-wconc-17', 'f1-prom-n-29', 'f1-spine-west-j', 'f1-wconc-35', 'f1-prom-s-29', 'f1-wconc-45']);
+me('dept-store-2-node', 'f1-wconc-17');
+
+mj('f1-cyber-51', 'Cyberzone concourse entry', 1, 51, 20);
+mj('f1-econc-35', 'South-east L2 upper aisle', 1, 51, 35);
+mj('f1-econc-45', 'South-east L2 lower aisle', 1, 51, 45);
+chain(['f1-cyber-51', 'f1-prom-n-51', 'f1-spine-east-j', 'f1-econc-35', 'f1-prom-s-51', 'f1-econc-45']);
+
+mj('f1-cyber-57', 'Esports entry', 1, 57, 20);
+mj('f1-cyber-57_5', 'Flagship PC entry', 1, 57.5, 20);
+mj('f1-cyber-65', 'Audio studio entry', 1, 65, 20);
+mj('f1-cyber-68_5', 'Flagship Mobile entry', 1, 68.5, 20);
+mj('f1-cyber-71', 'Camera lab entry', 1, 71, 20);
+chain(['f1-cyber-51', 'f1-cyber-57', 'f1-cyber-57_5', 'f1-cyber-65', 'f1-cyber-68_5', 'f1-cyber-71']);
+me('esports-node', 'f1-cyber-57');
+me('flagship-pc-node', 'f1-cyber-57_5');
+me('audio-node', 'f1-cyber-65');
+me('flagship-mobile-node', 'f1-cyber-68_5');
+me('camera-node', 'f1-cyber-71');
+
+for (const [id, xm] of [['sporting', 10], ['denim', 17.5], ['kids', 24.5]] as const) {
+  mj(`f1-j-${id}`, `${id} doorway`, 1, xm, 35);
+  me(`${id}-node`, `f1-j-${id}`);
+}
+chain(['f1-j-sporting', 'f1-j-denim', 'f1-j-kids', 'f1-wconc-35']);
+
+for (const [id, xm] of [['lingerie', 9], ['sneakers', 15], ['spa', 23]] as const) {
+  mj(`f1-j-${id}`, `${id} doorway`, 1, xm, 45);
+  me(`${id}-node`, `f1-j-${id}`);
+}
+chain(['f1-j-lingerie', 'f1-j-sneakers', 'f1-j-spa', 'f1-wconc-45']);
+
+for (const [id, xm] of [['dental', 55.5], ['homefurnish', 62.5], ['musicvinyl', 70]] as const) {
+  mj(`f1-j-${id}`, `${id} doorway`, 1, xm, 35);
+  me(`${id}-node`, `f1-j-${id}`);
+}
+chain(['f1-econc-35', 'f1-j-dental', 'f1-j-homefurnish', 'f1-j-musicvinyl']);
+
+for (const [id, xm] of [['crafthub', 55.5], ['japanesenovelty', 62.5], ['organictea', 70]] as const) {
+  mj(`f1-j-${id}`, `${id} doorway`, 1, xm, 45);
+  me(`${id}-node`, `f1-j-${id}`);
+}
+chain(['f1-econc-45', 'f1-j-crafthub', 'f1-j-japanesenovelty', 'f1-j-organictea']);
+
+// ---------------- LEVEL 3 (THIRD FLOOR) FACILITIES & ORTHOGONAL AISLES ----------------
 mn('cinema-1-node', 'Cinema 1: Digital Surround', 2, 57.5, 24, 'conference');
 mn('cinema-2-node', 'Cinema 2: Dolby Atmos', 2, 68.5, 24, 'conference');
-mn('box-office-node', 'Cinema Box Office', 2, 55, 26, 'reception');
-mn('concessions-node', 'Cinema Concessions & Snacks', 2, 62, 26, 'dining');
+mn('box-office-node', 'Cinema Box Office', 2, 55, 28, 'reception');
+mn('concessions-node', 'Cinema Concessions & Snacks', 2, 62, 28, 'dining');
 
 mn('food-asian-node', 'Food Stall: Asian Wok', 2, 11, 10, 'dining');
 mn('food-grill-node', 'Food Stall: Sizzling Grill', 2, 11, 15, 'dining');
@@ -394,40 +483,143 @@ mn('food-mexican-node', 'Food Stall: Mexican Cantina', 2, 23, 10, 'dining');
 mn('food-filipino-node', 'Food Stall: Filipino Heritage', 2, 23, 15, 'dining');
 mn('food-juice-node', 'Food Stall: Fresh Juices', 2, 23, 20, 'dining');
 mn('food-dessert-node', 'Food Stall: Gourmet Crepes', 2, 23, 25, 'dining');
-mn('food-seating-node', 'Food Hall Dining Concourse', 2, 17, 18, 'dining');
+mn('food-seating-node', 'Food Hall Dining Concourse', 2, 15, 18, 'dining');
 
-mn('arcade-node', 'Amusement Arcade & VR Zone', 2, 13, 38, 'fitness');
-mn('bowling-node', 'Billiards & Bowling Lounge', 2, 24, 38, 'fitness');
-mn('admin-node', 'Mall Administration HQ', 2, 58, 38, 'office');
-mn('security-node', 'Security & CCTV Command', 2, 69, 38, 'office');
-mn('clinic-node', 'Emergency First Aid & Clinic', 2, 57, 46, 'office');
-mn('lockers-node', 'Staff Lockers & Facilities', 2, 68, 46, 'office');
+mn('arcade-node', 'Amusement Arcade & VR Zone', 2, 12, 38, 'fitness');
+mn('bowling-node', 'Billiards & Bowling Lounge', 2, 23, 38, 'fitness');
+mn('admin-node', 'Mall Administration HQ', 2, 57.5, 38, 'office');
+mn('security-node', 'Security & CCTV Command', 2, 68.5, 38, 'office');
+mn('clinic-node', 'Emergency First Aid & Clinic', 2, 57.5, 46, 'office');
+mn('lockers-node', 'Staff Lockers & Facilities', 2, 68.5, 46, 'office');
 
-me('f2-north-aisle-e', 'cinema-1-node');
-me('f2-north-aisle-e', 'cinema-2-node');
-me('f2-north-aisle-e', 'box-office-node');
-me('f2-north-aisle-e', 'concessions-node');
+mj('f2-wconc-35', 'South-west L3 concourse', 2, 29, 35);
+chain(['f2-prom-n-29', 'f2-spine-west-j', 'f2-wconc-35', 'f2-prom-s-29']);
 
-me('f2-north-aisle-w', 'food-seating-node');
-me('food-seating-node', 'food-asian-node');
-me('food-seating-node', 'food-grill-node');
-me('food-seating-node', 'food-ramen-node');
-me('food-seating-node', 'food-pizza-node');
-me('food-seating-node', 'food-mexican-node');
-me('food-seating-node', 'food-filipino-node');
-me('food-seating-node', 'food-juice-node');
-me('food-seating-node', 'food-dessert-node');
+mj('f2-cine-51', 'Cinema lobby entry', 2, 51, 26);
+mj('f2-econc-35', 'Admin wing upper aisle', 2, 51, 35);
+mj('f2-econc-43_5', 'Clinic & staff aisle', 2, 51, 43.5);
+chain(['f2-prom-n-51', 'f2-cine-51', 'f2-spine-east-j', 'f2-econc-35', 'f2-prom-s-51', 'f2-econc-43_5']);
 
-me('f2-south-aisle-w', 'arcade-node');
-me('f2-south-aisle-w', 'bowling-node');
-me('f2-south-aisle-e', 'admin-node');
-me('f2-south-aisle-e', 'security-node');
-me('f2-south-aisle-e', 'clinic-node');
-me('f2-south-aisle-e', 'lockers-node');
+// Food Hall vertical center aisle (x=17) exits south between stairs-west and f2-pwd-west into y=35 aisle
+mj('f2-fh-10', 'Food hall north row', 2, 17, 10);
+mj('f2-fh-15', 'Food hall upper-mid row', 2, 17, 15);
+mj('f2-fh-18', 'Food hall seating bay', 2, 17, 18);
+mj('f2-fh-20', 'Food hall lower-mid row', 2, 17, 20);
+mj('f2-fh-25', 'Food hall south row', 2, 17, 25);
+mj('f2-fh-35', 'Food hall south approach', 2, 17, 35);
+chain(['f2-fh-10', 'f2-fh-15', 'f2-fh-18', 'f2-fh-20', 'f2-fh-25', 'f2-fh-35']);
+me('food-asian-node', 'f2-fh-10');
+me('food-mexican-node', 'f2-fh-10');
+me('food-grill-node', 'f2-fh-15');
+me('food-filipino-node', 'f2-fh-15');
+me('food-seating-node', 'f2-fh-18');
+me('food-ramen-node', 'f2-fh-20');
+me('food-juice-node', 'f2-fh-20');
+me('food-pizza-node', 'f2-fh-25');
+me('food-dessert-node', 'f2-fh-25');
+
+// Entertainment zone along y=35
+mj('f2-j-arcade', 'Arcade doorway', 2, 12, 35);
+mj('f2-j-bowling', 'Bowling doorway', 2, 23, 35);
+me('arcade-node', 'f2-j-arcade');
+me('bowling-node', 'f2-j-bowling');
+chain(['f2-j-arcade', 'f2-fh-35', 'f2-j-bowling', 'f2-wconc-35']);
+
+// Cinema foyer along y=26
+mj('f2-cine-55', 'Box office counter', 2, 55, 26);
+mj('f2-cine-57_5', 'Cinema 1 portal', 2, 57.5, 26);
+mj('f2-cine-62', 'Concessions counter', 2, 62, 26);
+mj('f2-cine-68_5', 'Cinema 2 portal', 2, 68.5, 26);
+chain(['f2-cine-51', 'f2-cine-55', 'f2-cine-57_5', 'f2-cine-62', 'f2-cine-68_5']);
+me('box-office-node', 'f2-cine-55');
+me('cinema-1-node', 'f2-cine-57_5');
+me('concessions-node', 'f2-cine-62');
+me('cinema-2-node', 'f2-cine-68_5');
+
+// Admin & Clinic aisles
+mj('f2-j-admin', 'Admin HQ doorway', 2, 57.5, 35);
+mj('f2-j-security', 'Security HQ doorway', 2, 68.5, 35);
+me('admin-node', 'f2-j-admin');
+me('security-node', 'f2-j-security');
+chain(['f2-econc-35', 'f2-j-admin', 'f2-j-security']);
+
+mj('f2-j-clinic', 'Medical clinic doorway', 2, 57.5, 43.5);
+mj('f2-j-lockers', 'Staff lockers doorway', 2, 68.5, 43.5);
+me('clinic-node', 'f2-j-clinic');
+me('lockers-node', 'f2-j-lockers');
+chain(['f2-econc-43_5', 'f2-j-clinic', 'f2-j-lockers']);
+
+// ----------------------------------------------------------------------------
+// WALKABLE AREAS (CORRIDORS, DOORWAYS, LANDINGS, RAMPS; EXCLUDING 2F/3F ATRIUM VOID)
+// ----------------------------------------------------------------------------
+const wa = (name: string, xm: number, ym: number, wm: number, hm: number): WalkableArea => ({
+  name,
+  x: mpx(xm),
+  y: mpx(ym),
+  width: mpx(wm),
+  height: mpx(hm),
+});
+
+const mallWalkableAreas: Record<FloorId, WalkableArea[]> = { 0: [], 1: [], 2: [] };
+
+for (const fl of [0, 1, 2] as const) {
+  mallWalkableAreas[fl].push(
+    // West & East North-South concourses and Atrium perimeter balconies
+    wa('West North-South Concourse', 26.5, 15, 4.5, 32),
+    wa('East North-South Concourse', 49.5, 15, 4.5, 32),
+    wa('North Atrium Promenade', 28, 19.5, 24, 3),
+    wa('South Atrium Promenade', 28, 37.5, 24, 3),
+    // West & East core corridors + PWD restroom portals
+    wa('West Core Circulation Spine', 7.5, 26.5, 23, 5),
+    wa('East Core Circulation Spine', 50, 26.5, 23, 5),
+    // South retail aisles
+    wa('South-West Upper Retail Aisle', 7.5, 34, 23, 4),
+    wa('South-East Upper Retail Aisle', 50, 34, 23, 4),
+  );
+  if (fl < 2) {
+    mallWalkableAreas[fl].push(
+      wa('South-West Lower Retail Aisle', 7.5, 44, 23, 4),
+      wa('South-East Lower Retail Aisle', 50, 44, 23, 4),
+    );
+  }
+}
+
+// Floor 0 Ground Atrium open floor, entrances, ramps & exterior promenades
+mallWalkableAreas[0].push(
+  wa('Ground Grand Atrium', 30, 22, 20, 16),
+  wa('North Entrance Forecourt & Ramp', 33, 1, 11, 6.5),
+  wa('North Interior Concourse', 36, 5.5, 8, 17),
+  wa('South Entrance & Interior Concourse', 36, 38, 8, 19),
+  wa('South Exterior PWD Promenade', 18, 53, 24, 4),
+  wa('West Entrance & Ramp', 3.5, 28, 6.5, 4),
+  wa('East Entrance, Ramp & Drop-off', 71, 28, 8, 4),
+);
+
+// Floor 1 Skybridge (x=37.5..42.5) + Scenic Lift North Access Deck (x=43.2..47.5) + Cyberzone aisle
+mallWalkableAreas[1].push(
+  wa('2F Mezzanine Skybridge', 37.5, 21.5, 5, 17),
+  wa('2F Scenic Lift Access Balcony', 43.2, 21.5, 4.3, 10),
+  wa('2F Cyberzone Central Aisle', 50, 17.5, 22.5, 5),
+);
+
+// Floor 2 Escalator North Landing + Scenic Lift North Access Deck + Cinema & Food Hall aisles
+mallWalkableAreas[2].push(
+  wa('3F Escalator Landing Deck', 37, 21.5, 6, 10),
+  wa('3F Scenic Lift Access Balcony', 43.2, 21.5, 4.3, 10),
+  wa('3F Food Hall Center Aisle & South Corridor', 10, 8, 14, 28.5),
+  wa('3F Cinema Foyer Aisle', 50, 23.5, 21, 5.5),
+  wa('3F Medical & Staff Corridor', 50, 42.5, 21, 4.5),
+);
+
+// Include room floorplates (for facility destinations inside shops/suites)
+for (const room of mallRooms) {
+  mallWalkableAreas[room.floor].push(wa(`${room.name} interior`, room.x, room.y, room.w, room.h));
+}
 
 export const mallGraph: HotelGraph = {
   nodes: mallNodes,
   edges: mallEdges,
+  walkableAreas: mallWalkableAreas,
 };
 
 // ----------------------------------------------------------------------------
@@ -495,7 +687,18 @@ export function renderMallFloorSvg(floor: FloorId): string {
       elements.push(`<line x1="${sbX + sbW - 4}" y1="${ay}" x2="${sbX + sbW - 4}" y2="${ay + ah}" stroke="#0284C7" stroke-width="3" stroke-dasharray="4,2"/>`);
       elements.push(`<text x="${sbX + sbW / 2}" y="${ay + ah / 2 - 8}" text-anchor="middle" font-family="Georgia, serif" font-size="11" font-weight="bold" fill="#0F172A">MEZZANINE SKYBRIDGE</text>`);
       elements.push(`<text x="${sbX + sbW / 2}" y="${ay + ah / 2 + 8}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="8.5" fill="#0369A1">5.0m CLEAR WIDTH (BP 344)</text>`);
+    } else {
+      // Escalator north landing deck on Level 3 (no south skybridge across atrium void)
+      const edX = mpx(37), edW = mpx(6), edH = mpx(9.5);
+      elements.push(`<rect x="${edX}" y="${ay}" width="${edW}" height="${edH}" fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>`);
+      elements.push(`<line x1="${edX + 4}" y1="${ay}" x2="${edX + 4}" y2="${ay + edH}" stroke="#0284C7" stroke-width="2.5" stroke-dasharray="4,2"/>`);
+      elements.push(`<line x1="${edX + edW - 4}" y1="${ay}" x2="${edX + edW - 4}" y2="${ay + edH}" stroke="#0284C7" stroke-width="2.5" stroke-dasharray="4,2"/>`);
     }
+    // Scenic Lift north access balcony on Level 2 & Level 3
+    const slDeckX = mpx(43.2), slDeckW = mpx(4.3), slDeckH = mpx(9.5);
+    elements.push(`<rect x="${slDeckX}" y="${ay}" width="${slDeckW}" height="${slDeckH}" fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>`);
+    elements.push(`<line x1="${slDeckX + 4}" y1="${ay}" x2="${slDeckX + 4}" y2="${ay + slDeckH}" stroke="#0284C7" stroke-width="2.5" stroke-dasharray="4,2"/>`);
+    elements.push(`<line x1="${slDeckX + slDeckW - 4}" y1="${ay}" x2="${slDeckX + slDeckW - 4}" y2="${ay + slDeckH}" stroke="#0284C7" stroke-width="2.5" stroke-dasharray="4,2"/>`);
   }
 
   // Draw Rooms Base Rectangles
@@ -686,9 +889,9 @@ export function renderMallFloorSvg(floor: FloorId): string {
       elements.push(`<text x="${mpx(cInfo.cx + 5.75)}" y="${vzY + mpx(1)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="6.5" font-weight="bold" fill="#6D28D9">Acoustic Lock</text>`);
     }
 
-    // Cinema Concessions Popcorn & Soda Counter (x=59 to 73, y=26.5 to 30)
-    elements.push(`<rect x="${mpx(59.5)}" y="${mpx(27)}" width="${mpx(13)}" height="${mpx(2)}" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>`);
-    elements.push(`<text x="${mpx(66)}" y="${mpx(28.3)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="8.5" font-weight="bold" fill="#92400E">🍿 CONCESSIONS &amp; REFRESHMENT BAR</text>`);
+    // Cinema Concessions Popcorn & Soda Counter (x=59 to 65, y=26.5 to 30; clear of the east stair/lift cores at x>=66)
+    elements.push(`<rect x="${mpx(59.5)}" y="${mpx(27)}" width="${mpx(5)}" height="${mpx(2)}" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>`);
+    elements.push(`<text x="${mpx(62)}" y="${mpx(28.3)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="8.5" font-weight="bold" fill="#92400E">🍿 CONCESSIONS</text>`);
 
     // 2. GOURMET FOOD HALL KITCHENS & SEATING CONCOURSE (x=6 to 28, y=8 to 30)
     // Central Dining Concourse (x=13 to 21, y=10 to 28)
@@ -739,8 +942,8 @@ export function renderMallFloorSvg(floor: FloorId): string {
   // --------------------------------------------------------------------------
   // RESTROOM SUITES ON ALL FLOORS (BP 344 STRICT COMPLIANCE)
   // --------------------------------------------------------------------------
-  // West PWD Restroom (x=18 to 21.5, y=28 to 31.5)
-  const wpwX = mpx(18), wpwY = mpx(28), wpwW = mpx(3.5), wpwH = mpx(3.5);
+  // West PWD Restroom (x=18 to 21.5, y=30.4 to 33.9; door on the north wall facing the y=30 spine)
+  const wpwX = mpx(18), wpwY = mpx(30.4), wpwW = mpx(3.5), wpwH = mpx(3.5);
   elements.push(`<rect x="${wpwX}" y="${wpwY}" width="${wpwW}" height="${wpwH}" fill="#EFF6FF" stroke="#0284C7" stroke-width="2" rx="3"/>`);
   // 1.50m Turning Circle guide
   elements.push(`<circle cx="${wpwX + wpwW / 2}" cy="${wpwY + wpwH / 2}" r="${mpx(1.5 / 2)}" fill="none" stroke="#0284C7" stroke-width="1.2" stroke-dasharray="4,3"/>`);
@@ -750,8 +953,8 @@ export function renderMallFloorSvg(floor: FloorId): string {
   elements.push(`<line x1="${wpwX + 4}" y1="${wpwY + 4}" x2="${wpwX + 4}" y2="${wpwY + mpx(1.4)}" stroke="#0284C7" stroke-width="3"/>`);
   elements.push(`<text x="${wpwX + wpwW / 2}" y="${wpwY + wpwH - 6}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="7" font-weight="bold" fill="#0284C7">♿ BP 344 PWD TOILET</text>`);
 
-  // East PWD Restroom (x=58 to 61.5, y=28 to 31.5)
-  const epwX = mpx(58), epwY = mpx(28), epwW = mpx(3.5), epwH = mpx(3.5);
+  // East PWD Restroom (x=58 to 61.5, y=30.4 to 33.9; door on the north wall facing the y=30 spine)
+  const epwX = mpx(58), epwY = mpx(30.4), epwW = mpx(3.5), epwH = mpx(3.5);
   elements.push(`<rect x="${epwX}" y="${epwY}" width="${epwW}" height="${epwH}" fill="#EFF6FF" stroke="#0284C7" stroke-width="2" rx="3"/>`);
   elements.push(`<circle cx="${epwX + epwW / 2}" cy="${epwY + epwH / 2}" r="${mpx(1.5 / 2)}" fill="none" stroke="#0284C7" stroke-width="1.2" stroke-dasharray="4,3"/>`);
   elements.push(`<text x="${epwX + epwW / 2}" y="${epwY + epwH / 2 + 3}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="6.5" font-weight="bold" fill="#0284C7">1.50m ⟲</text>`);

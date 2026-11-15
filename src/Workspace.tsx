@@ -9,7 +9,7 @@ import { Trash } from '@phosphor-icons/react/dist/csr/Trash';
 import { ClosuresDialog, StartPointSheet } from './StaffTools';
 import { readRouteParams } from './urlState';
 import { App } from './App';
-import { BUILT_IN_SAMPLES, BuildingContext, deleteBuilding, loadBuildings, resolveBuiltInSample, sampleBuilding, saveBuilding, type Building } from './buildings';
+import { ALL_BUILT_IN_SAMPLES, BUILT_IN_SAMPLES, BuildingContext, deleteBuilding, isBuiltInSample, loadBuildings, resolveBuiltInSample, sampleBuilding, saveBuilding, type Building } from './buildings';
 import { freshBuilding } from './buildingEditor';
 
 const FloorPlanStudio = lazy(() => import('./FloorPlanStudio').then(module => ({ default: module.FloorPlanStudio })));
@@ -207,18 +207,18 @@ export function Workspace() {
   const [library,setLibrary]=useState<Building[]>([]),[selected,setSelected]=useState<string>(() => resolveBuiltInSample(readRouteParams().est, deletedSamples)?.id ?? sampleBuilding.id);
   const [editing,setEditing]=useState(false),[loading,setLoading]=useState(()=> {
     const est = typeof window !== 'undefined' ? readRouteParams().est : undefined;
-    return !!est && est !== 'sample' && est !== sampleBuilding.id && !resolveBuiltInSample(est, deletedSamples);
+    return !!est && !resolveBuiltInSample(est, deletedSamples);
   }),[error,setError]=useState('');
   const [saving,setSaving]=useState(false),[tool,setTool]=useState<'closures'|'codes'|null>(null);
   const openTool=(next:'closures'|'codes')=>{setTool(next);if(toolsMenu.current)toolsMenu.current.open=false;};
   const toolsMenu=useRef<HTMLDetailsElement>(null);
-  const current = BUILT_IN_SAMPLES.find(b => b.id === selected && !deletedSamples.includes(b.id))
+  const current = ALL_BUILT_IN_SAMPLES.find(b => b.id === selected && !deletedSamples.includes(b.id))
     ?? library.find(b=>b.id===selected)
     ?? sampleBuilding;
 
-  useEffect(()=>{loadBuildings().then(list=>{setLibrary(list);const est=readRouteParams().est;const builtin=resolveBuiltInSample(est,deletedSamples);if(builtin)setSelected(builtin.id);else{const shared=list.find(b=>b.id===est&&b.status==='ready');if(shared)setSelected(shared.id);}}).catch(()=>setError('Saved establishments could not be loaded. Browser storage must be available to save your plans.')).finally(()=>setLoading(false));},[deletedSamples]);
+  useEffect(()=>{const initialDeleted=readDeletedSamples();loadBuildings().then(list=>{setLibrary(list);const est=readRouteParams().est;const builtin=resolveBuiltInSample(est,initialDeleted);if(builtin)setSelected(builtin.id);else{const shared=list.find(b=>b.id===est&&b.status==='ready');if(shared)setSelected(shared.id);}}).catch(()=>setError('Saved establishments could not be loaded. Browser storage must be available to save your plans.')).finally(()=>setLoading(false));},[]);
   const onSaved=useCallback((building:Building)=>setLibrary(old=>[...old.filter(b=>b.id!==building.id),building]),[]);
-  const customBuildings = library.filter(b => !BUILT_IN_SAMPLES.some(s => s.id === b.id) && b.id !== sampleBuilding.id);
+  const customBuildings = library.filter(b => !isBuiltInSample(b.id));
   useEffect(()=>{document.title=formatDocumentTitle(current.name);},[current.name]);
   const create=async()=>{
     const building=freshBuilding();setError('');
@@ -264,7 +264,7 @@ export function Workspace() {
             onChange={e=>{
               const nextId=e.target.value;
               setSelected(nextId);
-              if(BUILT_IN_SAMPLES.some(s=>s.id===nextId)||nextId===sampleBuilding.id){
+              if(isBuiltInSample(nextId)){
                 setEditing(false);
               }else{
                 const b=library.find(item=>item.id===nextId);
@@ -273,8 +273,7 @@ export function Workspace() {
             }}
           >
             <optgroup label="Built-in samples">
-              <option value={sampleBuilding.id}>Civic Center</option>
-              {BUILT_IN_SAMPLES.filter(s => !deletedSamples.includes(s.id)).map(s => (
+              {ALL_BUILT_IN_SAMPLES.filter(s => !deletedSamples.includes(s.id)).map(s => (
                 <option key={s.id} value={s.id}>{s.name}</option>
               ))}
             </optgroup>

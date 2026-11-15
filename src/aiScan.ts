@@ -1,10 +1,9 @@
 import type { BuildingFloor } from './buildings';
-import type { ClearanceGrid, Edge, MapNode } from './types';
-import { clearSegment, type ScanResult } from './scan';
-import { edgeGeometry } from './geometry';
+import { NODE_CATEGORIES, type ClearanceGrid, type Edge, type MapNode } from './types';
+import { type ScanResult } from './scan';
 import { traceDraftConnections } from './tracePaths';
 
-const categories=['junction','facility','entrance','room','restroom','elevator','stairs','dining','reception','lounge','conference','fitness'];
+const categories: readonly string[] = ['junction', ...NODE_CATEGORIES];
 const record=(value:unknown):Record<string,unknown>=>{
   if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('The AI returned an invalid graph object. No draft was applied.');
   return value as Record<string,unknown>;
@@ -39,14 +38,8 @@ export function aiGraphToDraft(value:unknown,floor:BuildingFloor,grid:ClearanceG
     const pair=[from,to].sort().join('|');if(pairs.has(pair))throw new Error('The AI returned duplicate connections. No draft was applied.');pairs.add(pair);
     if(!['corridor','stairs','ramp'].includes(String(edge.kind))||!Array.isArray(edge.via)||edge.via.length>30)throw new Error('The AI returned an invalid connection type or path. No draft was applied.');
     const via=edge.via.map(value=>{const point=record(value);return [coordinate(point.x,floor.width),coordinate(point.y,floor.height)] as [number,number];});
-    const result:Edge={id:`f${floor.id}-ai-e${i}`,from,to,kind:edge.kind as Edge['kind'],via,distance:0,accessible:false,reviewed:false,traversable:true};
-    const points=edgeGeometry(result,lookup);
-    result.distance=points.slice(1).reduce((sum,p,j)=>sum+Math.hypot(p[0]-points[j][0],p[1]-points[j][1]),0);
-    result.traversable=points.slice(1).every((p,j)=>clearSegment(grid,points[j],p));
-    return result;
+    return {id:`f${floor.id}-ai-e${i}`,from,to,kind:edge.kind as Edge['kind'],via,distance:0,accessible:false,reviewed:false,traversable:true};
   });
-  const roomShortcuts=new Set(nodes.filter(n=>n.category==='room'&&edges.filter(e=>e.from===n.id||e.to===n.id).length>1).map(n=>n.id));
-  edges.forEach(e=>{if(roomShortcuts.has(e.from)||roomShortcuts.has(e.to))e.traversable=false;});
   const traced=traceDraftConnections(nodes,edges,grid);
   return {nodes,edges:traced.edges,grid,message:`AI proposed ${nodes.length} locations. ${traced.edges.length-traced.blocked} candidate connections follow detected open space; ${traced.repaired} were traced around obstacles. ${traced.blocked?`${traced.blocked} connections could not be traced safely and remain blocked. Move misplaced nodes or map actual doorways before retrying. `:''}All connections need review; distances need calibration.${notes.length?` AI notes (unverified): ${notes.join(' ')}`:''}`};
 }

@@ -32,8 +32,8 @@ export function ClosuresDialog({building,onClose}:{building:Building;onClose:()=
 }
 
 export function StartPointSheet({building,onClose}:{building:Building;onClose:()=>void}){
-  const {facilities,floorName}=useMemo(()=>buildingData(building),[building]);
-  const points=facilities.filter(n=>n.category!=='room');
+  const {hotel,facilities,floorName}=useMemo(()=>buildingData(building),[building]);
+  const points=useMemo(()=>facilities.filter(n=>n.category!=='room'&&hotel.edges.some(e=>e.traversable&&(e.from===n.id||e.to===n.id))),[facilities,hotel.edges]);
   const [codes,setCodes]=useState<Record<string,string>>({}),[failed,setFailed]=useState(false);
   const est=sampleEstParam(building);
   useEffect(()=>{
@@ -43,7 +43,7 @@ export function StartPointSheet({building,onClose}:{building:Building;onClose:()
       if(alive)setCodes(Object.fromEntries(entries));
     }).catch(()=>alive&&setFailed(true));
     return()=>{alive=false;};
-  },[building.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  },[building.id,building.updatedAt]); // eslint-disable-line react-hooks/exhaustive-deps
   return <StaffDialog className="qr-dialog" title="“You are here” codes" subtitle="Print and post these at each location. Scanning one opens the map with that place already set as the starting point." onClose={onClose}>
     {!building.sample&&<p className="dialog-warning"><Warning size={16} aria-hidden="true"/>This establishment is saved only in this browser. Codes will open its map on this device, but visitors’ phones need a published copy of the map.</p>}
     {failed&&<p className="dialog-warning">QR codes could not be generated. The links below still work.</p>}

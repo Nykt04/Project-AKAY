@@ -12,7 +12,7 @@ export function connectionPath(graph:HotelGraph,fromId:string,toId:string):[numb
   if(!grid)return null;
   const nodes=graph.nodes.filter(n=>n.floor===from.floor),ids=new Set(nodes.map(n=>n.id));
   const candidate:Edge={id:'candidate',from:fromId,to:toId,distance:0,kind:'corridor',accessible:false,traversable:true,reviewed:false};
-  const topology=[...graph.edges.filter(e=>ids.has(e.from)&&ids.has(e.to)),candidate];
+  const topology=[...graph.edges.filter(e=>e.traversable&&ids.has(e.from)&&ids.has(e.to)),candidate];
   const traced=traceDraftConnections(nodes,[candidate],grid,topology).edges[0];
   return traced.traversable?edgeGeometry(traced,Object.fromEntries(nodes.map(n=>[n.id,n]))):null;
 }
@@ -22,7 +22,7 @@ export function connectionError(graph:HotelGraph,fromId:string,toId:string,floor
   if(!from||!to||from.floor!==floorId||to.floor!==floorId)return 'Select two existing nodes on this floor. Use Connect floors for elevator or stair transitions.';
   if(from.id===to.id)return 'Choose two different nodes.';
   if(graph.edges.some(e=>(e.from===from.id&&e.to===to.id)||(e.from===to.id&&e.to===from.id)))return 'These nodes already have a connection. Inspect it to change its access condition.';
-  if([from,to].some(n=>(n.category==='room'||(n.facility&&!['entrance','stairs','elevator'].includes(n.category??'')))&&graph.edges.some(e=>e.from===n.id||e.to===n.id)))return 'Connect each room entrance to one corridor junction. Remove its old connection before replacing it; rooms cannot be shortcuts.';
+  if([from,to].some(n=>(n.category==='room'||(n.facility&&!['entrance','stairs','elevator'].includes(n.category??'')))&&graph.edges.some(e=>e.traversable&&(e.from===n.id||e.to===n.id))))return 'Connect each room entrance to one corridor junction. Remove its old connection before replacing it; rooms cannot be shortcuts.';
   if(!connectionPath(graph,fromId,toId))return 'No path through detected open space connects these locations. Check their positions and actual doorways; walls will not be crossed.';
   return null;
 }

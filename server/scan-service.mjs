@@ -8,7 +8,7 @@ export const graphSchema = {
   type:'object',required:['nodes','edges','notes'],properties:{
     nodes:{type:'array',items:{type:'object',required:['id','name','x','y','category','destination'],properties:{
       id:{type:'string'},name:{type:'string'},x:coordinate,y:coordinate,
-      category:{type:'string',enum:['junction','facility','entrance','room','restroom','elevator','stairs','dining','reception','lounge','conference','fitness']},destination:{type:'boolean'}
+      category:{type:'string',enum:['junction','facility','entrance','room','restroom','elevator','stairs','dining','reception','lounge','conference','fitness','library','office','shop','parking']},destination:{type:'boolean'}
     }}},
     edges:{type:'array',items:{type:'object',required:['from','to','kind','via'],properties:{
       from:{type:'string'},to:{type:'string'},kind:{type:'string',enum:['corridor','ramp','stairs']},
